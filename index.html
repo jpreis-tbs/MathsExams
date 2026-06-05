@@ -181,10 +181,9 @@
         /* Card grid */
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 24px;
             width: 100%;
-            max-width: 1400px;
         }
 
         .exam-card {
@@ -192,6 +191,22 @@
             border-radius: 14px;
             padding: 28px 32px;
             position: relative;
+            cursor: grab;
+            user-select: none;
+            transition: box-shadow 0.2s, opacity 0.2s;
+        }
+
+        .exam-card.dragging {
+            opacity: 0.4;
+            box-shadow: none;
+        }
+
+        .exam-card.drag-over {
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .exam-card:active {
+            cursor: grabbing;
         }
 
         .exam-card.ib {
@@ -326,43 +341,35 @@
             font-weight: 700;
         }
 
-        .start-edit-row .value-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .start-edit-row .value {
+        .start-edit-input {
             font-size: 2.6rem;
             font-weight: 700;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .edit-start-input {
-            width: 110px;
-            padding: 5px 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1.1rem;
-            font-weight: 700;
             font-family: inherit;
-            text-align: center;
-            display: none;
-        }
-
-        .btn-edit {
-            background: none;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 4px 12px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            color: #555;
-        }
-
-        .btn-edit:hover {
-            border-color: #999;
+            font-variant-numeric: tabular-nums;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            padding: 2px 10px;
+            background: #fff;
             color: #000;
+            outline: none;
+            width: auto;
+            text-align: center;
+        }
+
+        .start-edit-input:focus {
+            border-color: #888;
+        }
+
+        .start-edit-input::-webkit-calendar-picker-indicator,
+        .start-edit-input::-webkit-inner-spin-button,
+        .start-edit-input::-webkit-clear-button {
+            -webkit-appearance: none;
+            appearance: none;
+            display: none !important;
+            width: 0;
+            height: 0;
+            margin: 0;
+            padding: 0;
         }
 
         /* Add timer button (inside grid) */
@@ -454,7 +461,7 @@
             </div>
             <div class="form-group">
                 <label for="start-time">Start Time</label>
-                <input type="time" id="start-time" value="09:00">
+                <input type="time" id="start-time">
             </div>
             <button class="btn btn-primary" id="btn-start">Add Timer</button>
             <button class="btn-link" id="btn-load">Load saved timers</button>
@@ -484,7 +491,7 @@
         const timers = []; // array of { id, board, name, durationMin, startMin, times, el }
         let tickInterval = null;
         let nextId = 0;
-        const MAX_TIMERS = 6;
+        const MAX_TIMERS = 16;
 
         // DOM refs
         const setupOverlay = document.getElementById('setup-overlay');
@@ -544,11 +551,11 @@
             times.push({ key: 'start', label: 'START', time: startMin });
 
             if (isIB && durationMin > 30) {
-                times.push({ key: '30min', label: '30 MIN LEFT', time: endMin - 30 });
+                times.push({ key: '30min', label: '30 MIN', time: endMin - 30 });
             }
 
             if (durationMin > 5) {
-                times.push({ key: '5min', label: '5 MIN LEFT', time: endMin - 5 });
+                times.push({ key: '5min', label: '5 MIN', time: endMin - 5 });
             }
 
             times.push({ key: 'end', label: 'END', time: endMin });
@@ -562,7 +569,8 @@
             examNameInput.value = '';
             durationHoursInput.value = '1';
             durationMinutesInput.value = '30';
-            startTimeInput.value = '09:00';
+            const now = new Date();
+            startTimeInput.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
             examBoardSelect.value = 'IB';
 
             // Show cancel button if timers already exist
@@ -577,6 +585,15 @@
             const card = document.createElement('div');
             card.className = 'exam-card ' + (isIB ? 'ib' : 'igcse');
             card.dataset.timerId = timer.id;
+            card.draggable = true;
+
+            // Prevent drag when interacting with buttons/inputs
+            card.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button, input')) {
+                    card.draggable = false;
+                }
+            });
+            card.addEventListener('mouseup', () => { card.draggable = true; });
 
             // Remove button
             const removeBtn = document.createElement('button');
@@ -605,39 +622,29 @@
             const rowsContainer = document.createElement('div');
             rowsContainer.className = 'time-rows';
 
+            const editableKey = timer.board === 'IB' ? 'reading' : 'start';
+
             timer.times.forEach(t => {
-                if (t.key === 'start') {
+                if (t.key === editableKey) {
                     const row = document.createElement('div');
                     row.className = 'start-edit-row';
-                    row.dataset.key = 'start';
+                    row.dataset.key = t.key;
                     row.innerHTML = `
                         <span class="label">${t.label}</span>
-                        <span class="value-group">
-                            <span class="value start-display">${minutesToTimeStr(t.time)}</span>
-                            <input type="time" class="edit-start-input" value="${minutesToTimeStr(t.time)}">
-                            <button class="btn-edit">Edit</button>
-                        </span>
+                        <input type="time" class="start-edit-input" value="${minutesToTimeStr(t.time)}">
                     `;
                     rowsContainer.appendChild(row);
 
-                    const btnEdit = row.querySelector('.btn-edit');
-                    const editInput = row.querySelector('.edit-start-input');
-                    const startDisplay = row.querySelector('.start-display');
-
-                    btnEdit.addEventListener('click', () => {
-                        if (editInput.style.display === 'none' || editInput.style.display === '') {
-                            editInput.style.display = 'inline-block';
-                            startDisplay.style.display = 'none';
-                            btnEdit.textContent = 'Save';
+                    const editInput = row.querySelector('.start-edit-input');
+                    editInput.addEventListener('change', () => {
+                        const newTime = timeStrToMinutes(editInput.value);
+                        if (timer.board === 'IB') {
+                            timer.startMin = newTime + 5;
                         } else {
-                            const newStart = timeStrToMinutes(editInput.value);
-                            timer.startMin = newStart;
-                            timer.times = computeTimes(timer.board, newStart, timer.durationMin);
-                            editInput.style.display = 'none';
-                            startDisplay.style.display = 'inline';
-                            btnEdit.textContent = 'Edit';
-                            refreshCardRows(timer);
+                            timer.startMin = newTime;
                         }
+                        timer.times = computeTimes(timer.board, timer.startMin, timer.durationMin);
+                        refreshCardRows(timer);
                     });
                 } else {
                     const row = document.createElement('div');
@@ -673,8 +680,7 @@
             timer.times.forEach((t, i) => {
                 const row = rows[i];
                 if (t.key === 'start') {
-                    row.querySelector('.start-display').textContent = minutesToTimeStr(t.time);
-                    row.querySelector('.edit-start-input').value = minutesToTimeStr(t.time);
+                    row.querySelector('.start-edit-input').value = minutesToTimeStr(t.time);
                 } else {
                     row.querySelector('.value').textContent = minutesToTimeStr(t.time);
                 }
@@ -909,6 +915,64 @@
             a.download = 'timer.json';
             a.click();
             URL.revokeObjectURL(url);
+        });
+
+        // --- Drag and drop reordering ---
+        let draggedCard = null;
+
+        cardsGrid.addEventListener('dragstart', (e) => {
+            const card = e.target.closest('.exam-card');
+            if (!card) { e.preventDefault(); return; }
+            draggedCard = card;
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        cardsGrid.addEventListener('dragend', (e) => {
+            if (draggedCard) {
+                draggedCard.classList.remove('dragging');
+                draggedCard = null;
+            }
+            cardsGrid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        });
+
+        cardsGrid.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const target = e.target.closest('.exam-card');
+            if (!target || target === draggedCard) return;
+            cardsGrid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            target.classList.add('drag-over');
+        });
+
+        cardsGrid.addEventListener('dragleave', (e) => {
+            const target = e.target.closest('.exam-card');
+            if (target) target.classList.remove('drag-over');
+        });
+
+        cardsGrid.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const target = e.target.closest('.exam-card');
+            if (!target || !draggedCard || target === draggedCard) return;
+            target.classList.remove('drag-over');
+
+            // Swap DOM positions
+            const allCards = [...cardsGrid.querySelectorAll('.exam-card')];
+            const dragIdx = allCards.indexOf(draggedCard);
+            const dropIdx = allCards.indexOf(target);
+
+            if (dragIdx < dropIdx) {
+                cardsGrid.insertBefore(draggedCard, target.nextSibling);
+            } else {
+                cardsGrid.insertBefore(draggedCard, target);
+            }
+
+            // Sync timers array order to match DOM
+            const newOrder = [...cardsGrid.querySelectorAll('.exam-card')].map(
+                el => timers.find(t => t.id === Number(el.dataset.timerId))
+            ).filter(Boolean);
+            timers.length = 0;
+            timers.push(...newOrder);
         });
 
         // Initial state: show setup
