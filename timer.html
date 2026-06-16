@@ -743,6 +743,10 @@
 
             times.push({ key: 'end', label: 'END', time: endMin });
 
+            // 25% extra time, finishing after the normal end
+            const extraMin = Math.round(durationMin * 0.25);
+            times.push({ key: 'extratime', label: 'EXTRA TIME', time: endMin + extraMin });
+
             return times;
         }
 
@@ -1005,10 +1009,12 @@
                 const endTime = timer.times.find(t => t.key === 'end');
                 const startTime = timer.times.find(t => t.key === 'start');
                 const readingTime = timer.times.find(t => t.key === 'reading');
+                const extraTime = timer.times.find(t => t.key === 'extratime');
 
                 const endSec = endTime.time * 60;
                 const startSec = startTime.time * 60;
                 const readingSec = readingTime ? readingTime.time * 60 : null;
+                const finalSec = extraTime ? extraTime.time * 60 : endSec;
 
                 // Highlight: the milestone row during its minute, then the remaining time
                 timer.times.forEach((t, i) => {
@@ -1021,14 +1027,23 @@
                     if (rows[activeMilestoneIdx]) {
                         rows[activeMilestoneIdx].classList.add(highlightClass);
                     }
-                } else if (currentIdx >= 0 && currentSec < endSec) {
+                } else if (currentIdx >= 0 && currentSec < finalSec) {
                     // After the milestone's minute, highlight the remaining time
                     countdownEl.classList.add(highlightClass);
                 }
 
-                if (currentSec >= endSec) {
+                if (currentSec >= finalSec) {
                     statusEl.textContent = 'EXAM ENDED';
                     countdownEl.textContent = '00:00';
+                } else if (currentSec >= endSec) {
+                    statusEl.textContent = 'Extra Time';
+                    const rem = finalSec - currentSec;
+                    const rh = Math.floor(rem / 3600);
+                    const rm = Math.floor((rem % 3600) / 60);
+                    const rs = rem % 60;
+                    countdownEl.textContent = rh > 0
+                        ? `${pad(rh)}:${pad(rm)}:${pad(rs)}`
+                        : `${pad(rm)}:${pad(rs)}`;
                 } else if (currentSec >= startSec) {
                     statusEl.textContent = 'Time Remaining';
                     const rem = endSec - currentSec;

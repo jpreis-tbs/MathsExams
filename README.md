@@ -62,8 +62,11 @@ Drag any card and drop it onto another card's position to reorder.
 | 30 min left | End - 30 min | -- |
 | 5 min left  | End - 5 min | End - 5 min |
 | End         | Start + duration | Start + duration |
+| Extra time  | End + 25% of duration | End + 25% of duration |
 
 When a milestone is reached, its row is highlighted (blue for IB, red for IGCSE) for one minute. After that minute the highlight moves to the remaining-time countdown — with inverted white text — and stays there until the exam ends.
+
+The countdown shows **Time Remaining** until the normal end, then switches to **Extra Time** (counting down the 25% extra-time allowance) until the extra time finishes.
 
 ## File structure
 
