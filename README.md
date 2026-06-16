@@ -26,7 +26,6 @@ A minimalistic web-based timer for IB and IGCSE exams. Single-page HTML/CSS/JS a
 4. Enter exam name, duration, and start time
 5. Click **Add Timer**
 6. Click the **+** card to add more timers (up to 16)
-7. Use the **← Home** link (top-left) to return to the landing page
 
 ### Editing times
 
@@ -53,6 +52,11 @@ Drag any card and drop it onto another card's position to reorder.
 4. **Submit Sheet** opens a pre-addressed email draft to the entered address with the table exported as CSV in the body — review and send from your mail app
 
 > Email sending uses a `mailto:` draft (the site is static, with no backend). The CSV is placed in the email body as text, not as a file attachment.
+
+### Possible future enhancements
+
+- **Download CSV button** — a backup that always produces a real `.csv` file, even if the email draft is awkward on a given device.
+- **Real file attachment / automated send** — would require EmailJS or a small backend instead of the `mailto:` draft.
 
 ## Timer milestones
 
@@ -108,7 +112,7 @@ Loading also accepts a single object (legacy format).
 
 ## Browser support
 
-Any modern browser (Chrome, Firefox, Safari, Edge). No build step or server required.
+Any modern browser (Chrome, Firefox, Safari, Edge). No build step or server required. The layout is responsive across desktops, tablets (e.g. iPad), and phones.
 
 ## License
 

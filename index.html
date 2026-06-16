@@ -97,6 +97,39 @@
             height: 40px;
             fill: currentColor;
         }
+
+        /* Responsive: tablets */
+        @media (max-width: 768px) {
+            .landing h1 {
+                font-size: 3.2rem;
+            }
+        }
+
+        /* Responsive: phones */
+        @media (max-width: 480px) {
+            body {
+                padding: 24px;
+            }
+
+            .landing h1 {
+                font-size: 2.6rem;
+            }
+
+            .landing .tagline {
+                font-size: 1.05rem;
+                margin-bottom: 36px;
+            }
+
+            .landing-btn {
+                font-size: 1.1rem;
+                padding: 18px 22px;
+            }
+
+            .github-link svg {
+                width: 34px;
+                height: 34px;
+            }
+        }
     </style>
 </head>
 <body>

@@ -235,33 +235,89 @@
             margin-top: 0;
         }
 
-        /* Home link */
-        .home-link {
+        /* GitHub link */
+        .github-link {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #555;
-            text-decoration: none;
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 8px 14px;
-            z-index: 201;
-            transition: background 0.2s, color 0.2s;
+            bottom: 20px;
+            right: 20px;
+            color: #bbb;
+            line-height: 0;
+            z-index: 150;
+            transition: color 0.2s;
         }
 
-        .home-link:hover {
-            background: #eee;
+        .github-link:hover {
             color: #000;
+        }
+
+        .github-link svg {
+            width: 40px;
+            height: 40px;
+            fill: currentColor;
+        }
+
+        /* Responsive: tablets (iPad) */
+        @media (max-width: 820px) {
+            #log-view {
+                padding: 50px 24px 40px;
+            }
+
+            .sheet-title {
+                font-size: 1.7rem;
+            }
+        }
+
+        /* Responsive: phones */
+        @media (max-width: 560px) {
+            #log-view {
+                padding: 40px 14px 80px;
+            }
+
+            .sheet-title {
+                font-size: 1.5rem;
+            }
+
+            .sheet-subtitle {
+                font-size: 0.95rem;
+                margin-bottom: 20px;
+            }
+
+            .sheet-meta {
+                gap: 6px 24px;
+                font-size: 1rem;
+            }
+
+            .log-table th,
+            .log-table td {
+                padding: 8px 8px;
+                font-size: 0.9rem;
+            }
+
+            .log-table col.col-time {
+                width: 58px;
+            }
+
+            .setup-card {
+                padding: 28px 24px;
+            }
+
+            .sheet-actions {
+                flex-direction: column;
+            }
+
+            .sheet-actions .btn {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .github-link svg {
+                width: 34px;
+                height: 34px;
+            }
         }
     </style>
 </head>
 <body>
-
-    <!-- Home link -->
-    <a class="home-link" href="index.html">&larr; Home</a>
 
     <!-- Setup overlay -->
     <div class="overlay" id="setup-overlay">
@@ -353,6 +409,13 @@
             <button class="btn btn-secondary" id="entry-cancel">Cancel</button>
         </div>
     </div>
+
+    <!-- GitHub link -->
+    <a class="github-link" href="https://github.com/oscarneiva" target="_blank" rel="noopener noreferrer" aria-label="GitHub profile" title="GitHub">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+    </a>
 
     <script>
         // State
@@ -529,6 +592,17 @@
         entryOverlay.addEventListener('click', (e) => {
             if (e.target === entryOverlay) closeEntry();
         });
+
+        // Auto-insert the ":" while typing a time (e.g. 1005 -> 10:05)
+        function autoColon(e) {
+            let digits = e.target.value.replace(/\D/g, '').slice(0, 4);
+            if (digits.length >= 3) {
+                digits = digits.slice(0, 2) + ':' + digits.slice(2);
+            }
+            e.target.value = digits;
+        }
+        entryLeft.addEventListener('input', autoColon);
+        entryBack.addEventListener('input', autoColon);
 
         // Build CSV of the table (RFC 4180 style escaping)
         function csvEscape(value) {

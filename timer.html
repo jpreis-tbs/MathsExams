@@ -520,28 +520,6 @@
             display: none;
         }
 
-        /* Home link */
-        .home-link {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #555;
-            text-decoration: none;
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 8px 14px;
-            z-index: 201;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .home-link:hover {
-            background: #eee;
-            color: #000;
-        }
-
         /* GitHub link */
         .github-link {
             position: fixed;
@@ -561,6 +539,69 @@
             width: 40px;
             height: 40px;
             fill: currentColor;
+        }
+
+        /* Responsive: small desktops / large tablets -> 3 columns */
+        @media (max-width: 1100px) {
+            .cards-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Responsive: tablets (iPad portrait) -> 2 columns */
+        @media (max-width: 820px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .exam-name {
+                font-size: 2.6rem;
+            }
+
+            .countdown-time {
+                font-size: 5rem;
+            }
+        }
+
+        /* Responsive: phones -> single column */
+        @media (max-width: 560px) {
+            #timer-view {
+                padding: 24px 16px 96px;
+            }
+
+            .timer-header {
+                margin-bottom: 24px;
+            }
+
+            .current-time {
+                font-size: 3rem;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .exam-card {
+                padding: 22px 22px;
+            }
+
+            .exam-name {
+                font-size: 2.2rem;
+            }
+
+            .countdown-time {
+                font-size: 4.4rem;
+            }
+
+            .setup-card {
+                padding: 28px 24px;
+            }
+
+            .github-link svg {
+                width: 34px;
+                height: 34px;
+            }
         }
     </style>
 </head>
