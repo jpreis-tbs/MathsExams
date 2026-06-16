@@ -335,10 +335,6 @@
                 <label for="sheet-date">Date</label>
                 <input type="date" id="sheet-date" lang="en-GB">
             </div>
-            <div class="form-group">
-                <label for="sheet-email">Submit to email</label>
-                <input type="email" id="sheet-email" placeholder="name@school.org">
-            </div>
             <button class="btn btn-primary" id="btn-start">Start Log Sheet</button>
         </div>
     </div>
@@ -377,7 +373,7 @@
 
             <div class="sheet-actions">
                 <button class="btn btn-primary" id="btn-add">Add Log</button>
-                <button class="btn btn-secondary" id="btn-submit">Submit Sheet</button>
+                <button class="btn btn-secondary" id="btn-download">Save Sheet (CSV)</button>
             </div>
         </div>
     </div>
@@ -421,7 +417,7 @@
         // State
         const logs = []; // array of { candidate, incident, left, back }
         let editingIndex = -1; // -1 = adding new
-        const sheet = { room: '', exam: '', date: '', email: '' }; // date is the formatted DD/MM/YYYY
+        const sheet = { room: '', exam: '', date: '' }; // date is the formatted DD/MM/YYYY
 
         // DOM refs
         const setupOverlay = document.getElementById('setup-overlay');
@@ -432,7 +428,6 @@
         const roomInput = document.getElementById('room');
         const examNameInput = document.getElementById('exam-name');
         const dateInput = document.getElementById('sheet-date');
-        const emailInput = document.getElementById('sheet-email');
 
         const entryTitle = document.getElementById('entry-title');
         const entryCandidate = document.getElementById('entry-candidate');
@@ -467,21 +462,15 @@
             const room = roomInput.value.trim();
             const exam = examNameInput.value.trim();
             const date = dateInput.value;
-            const email = emailInput.value.trim();
 
-            if (!room || !exam || !date || !email) {
-                alert('Please enter the room, exam name, date, and email.');
-                return;
-            }
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                alert('Please enter a valid email address.');
+            if (!room || !exam || !date) {
+                alert('Please enter the room, exam name, and date.');
                 return;
             }
 
             sheet.room = room;
             sheet.exam = exam;
             sheet.date = formatDate(date);
-            sheet.email = email;
 
             document.getElementById('meta-room').textContent = room;
             document.getElementById('meta-exam').textContent = exam;
@@ -616,24 +605,39 @@
             return rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
         }
 
-        // Submit Sheet: open a pre-addressed email draft with the CSV in the body
-        document.getElementById('btn-submit').addEventListener('click', () => {
+        // Build a safe file name slug from the sheet details
+        function slugify(value) {
+            return String(value)
+                .trim()
+                .replace(/[^a-z0-9]+/gi, '-')
+                .replace(/^-+|-+$/g, '')
+                .toLowerCase();
+        }
+
+        // Save Sheet: download the table as a CSV file on the device
+        document.getElementById('btn-download').addEventListener('click', () => {
             if (logs.length === 0) {
-                alert('Add at least one log before submitting the sheet.');
+                alert('Add at least one log before saving the sheet.');
                 return;
             }
 
-            const subject = `Incident Log Sheet — ${sheet.exam} — ${sheet.date}`;
-            const body =
-                `Room: ${sheet.room}\r\n` +
-                `Exam: ${sheet.exam}\r\n` +
-                `Date: ${sheet.date}\r\n\r\n` +
+            const csv =
+                `Room,${csvEscape(sheet.room)}\r\n` +
+                `Exam,${csvEscape(sheet.exam)}\r\n` +
+                `Date,${csvEscape(sheet.date)}\r\n\r\n` +
                 buildCsv() + '\r\n';
 
-            window.location.href =
-                `mailto:${encodeURIComponent(sheet.email)}` +
-                `?subject=${encodeURIComponent(subject)}` +
-                `&body=${encodeURIComponent(body)}`;
+            const namePart = [slugify(sheet.exam), slugify(sheet.date)].filter(Boolean).join('-');
+            const fileName = `incident-log${namePart ? '-' + namePart : ''}.csv`;
+
+            // Prepend a UTF-8 BOM so Excel reads accents correctly
+            const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
         });
 
         // Initial render

@@ -46,17 +46,12 @@ Drag any card and drop it onto another card's position to reorder.
 
 `incident-log.html` is a separate tool for logging exam incidents (toilet, sickbay, etc.).
 
-1. On load, enter the **Room**, **Exam**, **Date**, and a **Submit to email** address
+1. On load, enter the **Room**, **Exam**, and **Date**
 2. Press **Add Log** to record an incident — **Candidate**, **Incident**, **Left** time, **Back** time (times are 24-hour `HH:MM`)
 3. Click any row to edit or delete it
-4. **Submit Sheet** opens a pre-addressed email draft to the entered address with the table exported as CSV in the body — review and send from your mail app
+4. **Save Sheet (CSV)** downloads the sheet as a `.csv` file (named after the exam and date), including the Room/Exam/Date header rows
 
-> Email sending uses a `mailto:` draft (the site is static, with no backend). The CSV is placed in the email body as text, not as a file attachment.
-
-### Possible future enhancements
-
-- **Download CSV button** — a backup that always produces a real `.csv` file, even if the email draft is awkward on a given device.
-- **Real file attachment / automated send** — would require EmailJS or a small backend instead of the `mailto:` draft.
+> The CSV is generated entirely in the browser and saved to the device — the site is static, with no backend or upload.
 
 ## Timer milestones
 
