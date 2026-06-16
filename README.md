@@ -20,11 +20,13 @@ A minimalistic web-based timer for IB and IGCSE exams. Single-page HTML/CSS/JS a
 
 ## Usage
 
-1. Open `index.html` in a browser
-2. Select exam board (IB or IGCSE)
-3. Enter exam name, duration, and start time
-4. Click **Add Timer**
-5. Click the **+** card to add more timers (up to 16)
+1. Open `index.html` in a browser — the **Exams Hall** landing page
+2. Click **Exam Timer** (or **Incident Log Sheet**)
+3. On the timer page, select exam board (IB or IGCSE)
+4. Enter exam name, duration, and start time
+5. Click **Add Timer**
+6. Click the **+** card to add more timers (up to 16)
+7. Use the **← Home** link (top-left) to return to the landing page
 
 ### Editing times
 
@@ -41,6 +43,17 @@ A minimalistic web-based timer for IB and IGCSE exams. Single-page HTML/CSS/JS a
 
 Drag any card and drop it onto another card's position to reorder.
 
+## Incident Log Sheet
+
+`incident-log.html` is a separate tool for logging exam incidents (toilet, sickbay, etc.).
+
+1. On load, enter the **Room**, **Exam**, **Date**, and a **Submit to email** address
+2. Press **Add Log** to record an incident — **Candidate**, **Incident**, **Left** time, **Back** time (times are 24-hour `HH:MM`)
+3. Click any row to edit or delete it
+4. **Submit Sheet** opens a pre-addressed email draft to the entered address with the table exported as CSV in the body — review and send from your mail app
+
+> Email sending uses a `mailto:` draft (the site is static, with no backend). The CSV is placed in the email body as text, not as a file attachment.
+
 ## Timer milestones
 
 | Milestone    | IB  | IGCSE |
@@ -56,9 +69,11 @@ When a milestone is reached, its row is highlighted (blue for IB, red for IGCSE)
 ## File structure
 
 ```
-exam-timer/
-  index.html    # Full application (HTML + CSS + JS)
-  README.md     # This file
+exams-hall/
+  index.html         # Landing page (links to the tools)
+  timer.html         # Exam timer application (HTML + CSS + JS)
+  incident-log.html  # Incident log sheet (HTML + CSS + JS)
+  README.md          # This file
 ```
 
 ## Configuration file format

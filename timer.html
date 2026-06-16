@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exams Hall</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath fill='%23ffffff' d='M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61l1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42C16.07 4.74 14.12 4 12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #fff;
+            color: #000;
+            min-height: 100vh;
+        }
+
+        /* Setup overlay */
+        #setup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #setup-overlay.hidden {
+            display: none;
+        }
+
+        .setup-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 40px;
+            width: 440px;
+            max-width: 90vw;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .setup-card h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #333;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1.05rem;
+            color: #000;
+            background: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: #555;
+        }
+
+        .duration-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .duration-row input {
+            flex: 1;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.05rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+
+        .btn-primary {
+            background: #000;
+            color: #fff;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .btn-link {
+            background: none;
+            color: #555;
+            font-size: 0.95rem;
+            text-decoration: underline;
+            padding: 8px 0;
+            width: 100%;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            margin-top: 4px;
+        }
+
+        .btn-link:hover {
+            color: #000;
+        }
+
+        .setup-cancel {
+            background: none;
+            color: #999;
+            font-size: 0.9rem;
+            text-decoration: underline;
+            padding: 8px 0;
+            width: 100%;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            margin-top: 2px;
+            display: none;
+        }
+
+        .setup-cancel:hover {
+            color: #000;
+        }
+
+        /* Timer view */
+        #timer-view {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            padding: 30px 40px 80px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #timer-view.active {
+            display: flex;
+        }
+
+        .timer-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .current-time-label {
+            font-size: 1.1rem;
+            color: #777;
+            margin-bottom: 4px;
+        }
+
+        .current-time {
+            font-size: 4rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
+        }
+
+        /* Card grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            width: 100%;
+        }
+
+        .exam-card {
+            border: 4px solid;
+            border-radius: 14px;
+            padding: 28px 32px;
+            position: relative;
+            cursor: grab;
+            user-select: none;
+            transition: box-shadow 0.2s, opacity 0.2s;
+        }
+
+        .exam-card.dragging {
+            opacity: 0.4;
+            box-shadow: none;
+        }
+
+        .exam-card.drag-over {
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .exam-card:active {
+            cursor: grabbing;
+        }
+
+        .exam-card.ib {
+            border-color: #1a56db;
+        }
+
+        .exam-card.igcse {
+            border-color: #dc2626;
+        }
+
+        .card-remove {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: #bbb;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+        }
+
+        .card-remove:hover {
+            color: #666;
+        }
+
+        .exam-name {
+            font-size: 3.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2px;
+        }
+
+        .exam-board-label {
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .exam-card.ib .exam-board-label {
+            color: #1a56db;
+        }
+
+        .exam-card.igcse .exam-board-label {
+            color: #dc2626;
+        }
+
+        .exam-duration-label {
+            font-size: 1.1rem;
+            color: #777;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .time-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .time-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 18px;
+            border-radius: 6px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .time-row .label {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .time-row .value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .time-row.highlighted-ib {
+            background: #1a56db;
+            color: #fff;
+        }
+
+        .time-row.highlighted-igcse {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .start-edit-row.highlighted-ib {
+            background: #1a56db;
+            color: #fff;
+        }
+
+        .start-edit-row.highlighted-igcse {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .countdown-section {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .countdown-status {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #777;
+            margin-bottom: 4px;
+        }
+
+        .countdown-time {
+            display: inline-block;
+            font-size: 6rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            padding: 4px 18px;
+            border-radius: 8px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .exam-card.ib .countdown-time {
+            color: #1a56db;
+        }
+
+        .exam-card.igcse .countdown-time {
+            color: #dc2626;
+        }
+
+        .exam-card.ib .countdown-time.highlighted-ib {
+            background: #1a56db;
+            color: #fff;
+        }
+
+        .exam-card.igcse .countdown-time.highlighted-igcse {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        /* Editable start time */
+        .start-edit-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 18px;
+            border-radius: 6px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .start-edit-row .label {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .start-edit-input {
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: inherit;
+            font-variant-numeric: tabular-nums;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            padding: 2px 10px;
+            background: #fff;
+            color: #000;
+            outline: none;
+            width: auto;
+            text-align: center;
+        }
+
+        .start-edit-input:focus {
+            border-color: #888;
+        }
+
+        .start-edit-input::-webkit-calendar-picker-indicator,
+        .start-edit-input::-webkit-inner-spin-button,
+        .start-edit-input::-webkit-clear-button {
+            -webkit-appearance: none;
+            appearance: none;
+            display: none !important;
+            width: 0;
+            height: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Add timer button (inside grid) */
+        .add-card {
+            border: 3px dashed #ddd;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .add-card:hover {
+            border-color: #aaa;
+            background: #fafafa;
+        }
+
+        .add-card-content {
+            text-align: center;
+            color: #aaa;
+        }
+
+        .add-card-content .plus {
+            font-size: 3rem;
+            font-weight: 300;
+            line-height: 1;
+        }
+
+        .add-card-content .add-label {
+            font-size: 1.1rem;
+            margin-top: 6px;
+        }
+
+        /* Toast popup */
+        #toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 32px 40px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            z-index: 200;
+            text-align: center;
+            max-width: 400px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        #toast.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #toast-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 199;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        #toast-backdrop.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #toast p {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #toast button {
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 28px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        #toast button:hover {
+            opacity: 0.85;
+        }
+
+        /* Bottom controls */
+        .bottom-controls {
+            position: fixed;
+            bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-bottom {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px 18px;
+            font-size: 0.95rem;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .btn-bottom:hover {
+            background: #eee;
+            color: #000;
+        }
+
+        /* Hidden file input */
+        #file-input {
+            display: none;
+        }
+
+        /* Home link */
+        .home-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #555;
+            text-decoration: none;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px 14px;
+            z-index: 201;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .home-link:hover {
+            background: #eee;
+            color: #000;
+        }
+
+        /* GitHub link */
+        .github-link {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: #bbb;
+            line-height: 0;
+            z-index: 150;
+            transition: color 0.2s;
+        }
+
+        .github-link:hover {
+            color: #000;
+        }
+
+        .github-link svg {
+            width: 40px;
+            height: 40px;
+            fill: currentColor;
+        }
+    </style>
+</head>
+<body>
+    <!-- Setup overlay -->
+    <div id="setup-overlay">
+        <div class="setup-card">
+            <h1>Exam Timer</h1>
+            <div class="form-group">
+                <label for="exam-board">Exam Board</label>
+                <select id="exam-board">
+                    <option value="IB">IB</option>
+                    <option value="IGCSE">IGCSE</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="exam-name">Exam Name</label>
+                <input type="text" id="exam-name" placeholder="e.g. English B Paper 1 HL">
+            </div>
+            <div class="form-group">
+                <label>Duration</label>
+                <div class="duration-row">
+                    <input type="number" id="duration-hours" min="0" max="5" placeholder="Hours" value="1">
+                    <input type="number" id="duration-minutes" min="0" max="59" placeholder="Minutes" value="30">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="start-time">Start Time (24-hour, HH:MM)</label>
+                <input type="text" id="start-time" inputmode="numeric" maxlength="5" placeholder="HH:MM" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" lang="en-GB">
+            </div>
+            <button class="btn btn-primary" id="btn-start">Add Timer</button>
+            <button class="btn btn-primary" id="btn-load">Load Timer</button>
+            <button class="setup-cancel" id="btn-cancel">Cancel</button>
+            <input type="file" id="file-input" accept=".json">
+        </div>
+    </div>
+
+    <!-- Timer view -->
+    <div id="timer-view">
+        <div class="timer-header">
+            <div class="current-time-label">Current Time</div>
+            <div class="current-time" id="current-time">--:--:--</div>
+        </div>
+
+        <div class="cards-grid" id="cards-grid">
+            <!-- Exam cards and add-card injected by JS -->
+        </div>
+
+        <div class="bottom-controls">
+            <button class="btn btn-primary" id="btn-download">Save Timer</button>
+        </div>
+    </div>
+
+    <!-- GitHub link -->
+    <a class="github-link" href="https://github.com/oscarneiva" target="_blank" rel="noopener noreferrer" aria-label="GitHub profile" title="GitHub">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+    </a>
+
+    <!-- Toast popup -->
+    <div id="toast-backdrop"></div>
+    <div id="toast">
+        <p>Click on <strong>Save Timer</strong> to download your session in case of a shutdown.</p>
+        <button id="toast-dismiss">OK</button>
+    </div>
+
+    <script>
+        // State
+        const timers = []; // array of { id, board, name, durationMin, startMin, times, el }
+        let tickInterval = null;
+        let nextId = 0;
+        const MAX_TIMERS = 16;
+
+        // DOM refs
+        const setupOverlay = document.getElementById('setup-overlay');
+        const timerView = document.getElementById('timer-view');
+        const cardsGrid = document.getElementById('cards-grid');
+        const btnCancel = document.getElementById('btn-cancel');
+
+        // Form refs
+        const examBoardSelect = document.getElementById('exam-board');
+        const examNameInput = document.getElementById('exam-name');
+        const durationHoursInput = document.getElementById('duration-hours');
+        const durationMinutesInput = document.getElementById('duration-minutes');
+        const startTimeInput = document.getElementById('start-time');
+
+        // Helpers
+        function pad(n) {
+            return String(n).padStart(2, '0');
+        }
+
+        function minutesToHM(totalMin) {
+            const h = Math.floor(totalMin / 60);
+            const m = totalMin % 60;
+            return h > 0 ? `${h}h${pad(m)}m` : `${m}m`;
+        }
+
+        function timeStrToMinutes(str) {
+            const [h, m] = str.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function minutesToTimeStr(totalMin) {
+            const h = Math.floor(totalMin / 60) % 24;
+            const m = totalMin % 60;
+            return `${pad(h)}:${pad(m)}`;
+        }
+
+        function nowSeconds() {
+            const now = new Date();
+            return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        }
+
+        function nowMinutes() {
+            const now = new Date();
+            return now.getHours() * 60 + now.getMinutes();
+        }
+
+        // Compute key times for a timer
+        function computeTimes(board, startMin, durationMin) {
+            const times = [];
+            const endMin = startMin + durationMin;
+            const isIB = board === 'IB';
+
+            if (isIB) {
+                times.push({ key: 'reading', label: 'READING', time: startMin - 5 });
+            }
+
+            times.push({ key: 'start', label: 'START', time: startMin });
+
+            if (isIB && durationMin > 30) {
+                times.push({ key: '30min', label: '30 MIN', time: endMin - 30 });
+            }
+
+            if (durationMin > 5) {
+                times.push({ key: '5min', label: '5 MIN', time: endMin - 5 });
+            }
+
+            times.push({ key: 'end', label: 'END', time: endMin });
+
+            return times;
+        }
+
+        // Show setup form
+        function showSetup() {
+            // Reset form
+            examNameInput.value = '';
+            durationHoursInput.value = '1';
+            durationMinutesInput.value = '30';
+            const now = new Date();
+            startTimeInput.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            examBoardSelect.value = 'IB';
+
+            // Show cancel button if timers already exist
+            btnCancel.style.display = timers.length > 0 ? 'block' : 'none';
+
+            setupOverlay.classList.remove('hidden');
+        }
+
+        // Build a card DOM element for a timer
+        function buildCard(timer) {
+            const isIB = timer.board === 'IB';
+            const card = document.createElement('div');
+            card.className = 'exam-card ' + (isIB ? 'ib' : 'igcse');
+            card.dataset.timerId = timer.id;
+            card.draggable = true;
+
+            // Prevent drag when interacting with buttons/inputs
+            card.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button, input')) {
+                    card.draggable = false;
+                }
+            });
+            card.addEventListener('mouseup', () => { card.draggable = true; });
+
+            // Remove button
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'card-remove';
+            removeBtn.textContent = '\u00d7';
+            removeBtn.addEventListener('click', () => removeTimer(timer.id));
+            card.appendChild(removeBtn);
+
+            // Header
+            const boardLabel = document.createElement('div');
+            boardLabel.className = 'exam-board-label';
+            boardLabel.textContent = timer.board;
+            card.appendChild(boardLabel);
+
+            const nameLabel = document.createElement('div');
+            nameLabel.className = 'exam-name';
+            nameLabel.textContent = timer.name;
+            card.appendChild(nameLabel);
+
+            const durLabel = document.createElement('div');
+            durLabel.className = 'exam-duration-label';
+            durLabel.textContent = minutesToHM(timer.durationMin);
+            card.appendChild(durLabel);
+
+            // Time rows
+            const rowsContainer = document.createElement('div');
+            rowsContainer.className = 'time-rows';
+
+            const editableKey = timer.board === 'IB' ? 'reading' : 'start';
+
+            timer.times.forEach(t => {
+                if (t.key === editableKey) {
+                    const row = document.createElement('div');
+                    row.className = 'start-edit-row';
+                    row.dataset.key = t.key;
+                    row.innerHTML = `
+                        <span class="label">${t.label}</span>
+                        <input type="text" inputmode="numeric" maxlength="5" size="5" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" class="start-edit-input" value="${minutesToTimeStr(t.time)}">
+                    `;
+                    rowsContainer.appendChild(row);
+
+                    const editInput = row.querySelector('.start-edit-input');
+                    editInput.addEventListener('change', () => {
+                        if (!/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(editInput.value)) {
+                            // Invalid entry: revert to the current value
+                            const cur = timer.times.find(x => x.key === t.key);
+                            editInput.value = minutesToTimeStr(cur.time);
+                            return;
+                        }
+                        const newTime = timeStrToMinutes(editInput.value);
+                        if (timer.board === 'IB') {
+                            timer.startMin = newTime + 5;
+                        } else {
+                            timer.startMin = newTime;
+                        }
+                        timer.times = computeTimes(timer.board, timer.startMin, timer.durationMin);
+                        refreshCardRows(timer);
+                    });
+                } else {
+                    const row = document.createElement('div');
+                    row.className = 'time-row';
+                    row.dataset.key = t.key;
+                    row.innerHTML = `
+                        <span class="label">${t.label}</span>
+                        <span class="value">${minutesToTimeStr(t.time)}</span>
+                    `;
+                    rowsContainer.appendChild(row);
+                }
+            });
+
+            card.appendChild(rowsContainer);
+
+            // Countdown
+            const countdownSection = document.createElement('div');
+            countdownSection.className = 'countdown-section';
+            countdownSection.innerHTML = `
+                <div class="countdown-status"></div>
+                <div class="countdown-time">--:--</div>
+            `;
+            card.appendChild(countdownSection);
+
+            timer.el = card;
+            return card;
+        }
+
+        // Refresh row values after start time edit
+        function refreshCardRows(timer) {
+            const editableKey = timer.board === 'IB' ? 'reading' : 'start';
+            const rowsContainer = timer.el.querySelector('.time-rows');
+            const rows = rowsContainer.children;
+            timer.times.forEach((t, i) => {
+                const row = rows[i];
+                if (t.key === editableKey) {
+                    const input = row.querySelector('.start-edit-input');
+                    if (input) input.value = minutesToTimeStr(t.time);
+                } else {
+                    const valueEl = row.querySelector('.value');
+                    if (valueEl) valueEl.textContent = minutesToTimeStr(t.time);
+                }
+            });
+        }
+
+        // Render the add-timer placeholder card
+        function renderAddCard() {
+            const existing = cardsGrid.querySelector('.add-card');
+            if (existing) existing.remove();
+
+            if (timers.length < MAX_TIMERS) {
+                const addCard = document.createElement('div');
+                addCard.className = 'add-card';
+                addCard.innerHTML = `
+                    <div class="add-card-content">
+                        <div class="plus">+</div>
+                        <div class="add-label">Add Timer</div>
+                    </div>
+                `;
+                addCard.addEventListener('click', showSetup);
+                cardsGrid.appendChild(addCard);
+            }
+        }
+
+        // Add a timer
+        function addTimer(data) {
+            if (timers.length >= MAX_TIMERS) {
+                alert('Maximum of ' + MAX_TIMERS + ' timers reached.');
+                return;
+            }
+
+            const timer = {
+                id: nextId++,
+                board: data.board,
+                name: data.name,
+                durationMin: data.durationMin,
+                startMin: data.startMin,
+                times: computeTimes(data.board, data.startMin, data.durationMin),
+                el: null
+            };
+
+            timers.push(timer);
+            const card = buildCard(timer);
+
+            // Insert before add-card placeholder
+            const addCard = cardsGrid.querySelector('.add-card');
+            if (addCard) {
+                cardsGrid.insertBefore(card, addCard);
+            } else {
+                cardsGrid.appendChild(card);
+            }
+
+            renderAddCard();
+
+            // Show timer view, hide setup
+            setupOverlay.classList.add('hidden');
+            timerView.classList.add('active');
+
+            // Start tick if not running
+            if (!tickInterval) {
+                tick();
+                tickInterval = setInterval(tick, 1000);
+            }
+
+            // Show save reminder on first timer
+            if (timers.length === 1) {
+                showToast();
+            }
+        }
+
+        // Toast popup
+        function showToast() {
+            document.getElementById('toast').classList.add('visible');
+            document.getElementById('toast-backdrop').classList.add('visible');
+        }
+
+        function hideToast() {
+            document.getElementById('toast').classList.remove('visible');
+            document.getElementById('toast-backdrop').classList.remove('visible');
+        }
+
+        // Remove a timer
+        function removeTimer(id) {
+            const idx = timers.findIndex(t => t.id === id);
+            if (idx === -1) return;
+            const timer = timers[idx];
+            timer.el.remove();
+            timers.splice(idx, 1);
+
+            renderAddCard();
+
+            // If no timers left, go back to setup
+            if (timers.length === 0) {
+                clearInterval(tickInterval);
+                tickInterval = null;
+                timerView.classList.remove('active');
+                showSetup();
+            }
+        }
+
+        // Tick: update current time and all timer cards
+        function tick() {
+            const now = new Date();
+            document.getElementById('current-time').textContent =
+                `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+            const currentMin = nowMinutes();
+            const currentSec = nowSeconds();
+
+            timers.forEach(timer => {
+                const isIB = timer.board === 'IB';
+                const highlightClass = isIB ? 'highlighted-ib' : 'highlighted-igcse';
+                const rowsContainer = timer.el.querySelector('.time-rows');
+                const rows = rowsContainer.children;
+
+                // Determine whether a milestone has been reached, and whether one
+                // is being hit during the current minute
+                let currentIdx = -1;
+                let activeMilestoneIdx = -1;
+                timer.times.forEach((t, i) => {
+                    if (currentMin >= t.time) currentIdx = i;
+                    if (currentMin === t.time) activeMilestoneIdx = i;
+                });
+
+                // Countdown
+                const statusEl = timer.el.querySelector('.countdown-status');
+                const countdownEl = timer.el.querySelector('.countdown-time');
+
+                const endTime = timer.times.find(t => t.key === 'end');
+                const startTime = timer.times.find(t => t.key === 'start');
+                const readingTime = timer.times.find(t => t.key === 'reading');
+
+                const endSec = endTime.time * 60;
+                const startSec = startTime.time * 60;
+                const readingSec = readingTime ? readingTime.time * 60 : null;
+
+                // Highlight: the milestone row during its minute, then the remaining time
+                timer.times.forEach((t, i) => {
+                    if (rows[i]) rows[i].classList.remove('highlighted-ib', 'highlighted-igcse');
+                });
+                countdownEl.classList.remove('highlighted-ib', 'highlighted-igcse');
+
+                if (activeMilestoneIdx >= 0) {
+                    // A milestone is being hit this minute — highlight its row
+                    if (rows[activeMilestoneIdx]) {
+                        rows[activeMilestoneIdx].classList.add(highlightClass);
+                    }
+                } else if (currentIdx >= 0 && currentSec < endSec) {
+                    // After the milestone's minute, highlight the remaining time
+                    countdownEl.classList.add(highlightClass);
+                }
+
+                if (currentSec >= endSec) {
+                    statusEl.textContent = 'EXAM ENDED';
+                    countdownEl.textContent = '00:00';
+                } else if (currentSec >= startSec) {
+                    statusEl.textContent = 'Time Remaining';
+                    const rem = endSec - currentSec;
+                    const rh = Math.floor(rem / 3600);
+                    const rm = Math.floor((rem % 3600) / 60);
+                    const rs = rem % 60;
+                    countdownEl.textContent = rh > 0
+                        ? `${pad(rh)}:${pad(rm)}:${pad(rs)}`
+                        : `${pad(rm)}:${pad(rs)}`;
+                } else if (readingSec !== null && currentSec >= readingSec) {
+                    statusEl.textContent = 'Reading Time';
+                    const rem = startSec - currentSec;
+                    const rm = Math.floor(rem / 60);
+                    const rs = rem % 60;
+                    countdownEl.textContent = `${pad(rm)}:${pad(rs)}`;
+                } else {
+                    const waitTarget = readingSec !== null ? readingSec : startSec;
+                    statusEl.textContent = 'Waiting to Start';
+                    const rem = waitTarget - currentSec;
+                    const rh = Math.floor(rem / 3600);
+                    const rm = Math.floor((rem % 3600) / 60);
+                    const rs = rem % 60;
+                    countdownEl.textContent = rh > 0
+                        ? `${pad(rh)}:${pad(rm)}:${pad(rs)}`
+                        : `${pad(rm)}:${pad(rs)}`;
+                }
+            });
+        }
+
+        // --- Event listeners ---
+
+        // Add timer from form
+        document.getElementById('btn-start').addEventListener('click', () => {
+            const board = examBoardSelect.value;
+            const name = examNameInput.value.trim() || 'Unnamed Exam';
+            const hours = parseInt(durationHoursInput.value) || 0;
+            const minutes = parseInt(durationMinutesInput.value) || 0;
+            const durationMin = hours * 60 + minutes;
+
+            if (!/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(startTimeInput.value)) {
+                alert('Please enter a valid start time (24-hour, HH:MM, 00:00 to 23:59).');
+                return;
+            }
+            const startMin = timeStrToMinutes(startTimeInput.value);
+
+            if (durationMin <= 0) {
+                alert('Please enter a valid duration.');
+                return;
+            }
+
+            addTimer({ board, name, durationMin, startMin });
+        });
+
+        // Cancel button (go back to timer view)
+        btnCancel.addEventListener('click', () => {
+            setupOverlay.classList.add('hidden');
+        });
+
+        // Load button
+        document.getElementById('btn-load').addEventListener('click', () => {
+            document.getElementById('file-input').click();
+        });
+
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    let data = JSON.parse(evt.target.result);
+
+                    // Support both single timer and array format
+                    if (!Array.isArray(data)) data = [data];
+
+                    // Clear existing timers
+                    timers.forEach(t => t.el.remove());
+                    timers.length = 0;
+                    renderAddCard();
+
+                    data.forEach(d => {
+                        if (d.board && d.name && d.durationMin && d.startMin !== undefined) {
+                            addTimer(d);
+                        }
+                    });
+
+                    if (timers.length === 0) {
+                        alert('No valid timers found in file.');
+                        showSetup();
+                    }
+                } catch {
+                    alert('Could not read timer file.');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+
+        // Download button
+        document.getElementById('btn-download').addEventListener('click', () => {
+            if (timers.length === 0) return;
+            const saveData = timers.map(t => ({
+                board: t.board,
+                name: t.name,
+                durationMin: t.durationMin,
+                startMin: t.startMin
+            }));
+            const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'timer.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // --- Drag and drop reordering ---
+        let draggedCard = null;
+
+        cardsGrid.addEventListener('dragstart', (e) => {
+            const card = e.target.closest('.exam-card');
+            if (!card) { e.preventDefault(); return; }
+            draggedCard = card;
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        cardsGrid.addEventListener('dragend', (e) => {
+            if (draggedCard) {
+                draggedCard.classList.remove('dragging');
+                draggedCard = null;
+            }
+            cardsGrid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        });
+
+        cardsGrid.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const target = e.target.closest('.exam-card');
+            if (!target || target === draggedCard) return;
+            cardsGrid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            target.classList.add('drag-over');
+        });
+
+        cardsGrid.addEventListener('dragleave', (e) => {
+            const target = e.target.closest('.exam-card');
+            if (target) target.classList.remove('drag-over');
+        });
+
+        cardsGrid.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const target = e.target.closest('.exam-card');
+            if (!target || !draggedCard || target === draggedCard) return;
+            target.classList.remove('drag-over');
+
+            // Swap DOM positions
+            const allCards = [...cardsGrid.querySelectorAll('.exam-card')];
+            const dragIdx = allCards.indexOf(draggedCard);
+            const dropIdx = allCards.indexOf(target);
+
+            if (dragIdx < dropIdx) {
+                cardsGrid.insertBefore(draggedCard, target.nextSibling);
+            } else {
+                cardsGrid.insertBefore(draggedCard, target);
+            }
+
+            // Sync timers array order to match DOM
+            const newOrder = [...cardsGrid.querySelectorAll('.exam-card')].map(
+                el => timers.find(t => t.id === Number(el.dataset.timerId))
+            ).filter(Boolean);
+            timers.length = 0;
+            timers.push(...newOrder);
+        });
+
+        // Toast dismiss
+        document.getElementById('toast-dismiss').addEventListener('click', hideToast);
+        document.getElementById('toast-backdrop').addEventListener('click', hideToast);
+
+        // Initial state: show setup
+        showSetup();
+    </script>
+</body>
+</html>

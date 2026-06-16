@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Log Sheet — Exams Hall</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath fill='%23ffffff' d='M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61l1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42C16.07 4.74 14.12 4 12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #fff;
+            color: #000;
+            min-height: 100vh;
+        }
+
+        /* Overlay (setup + entry modal) */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        .setup-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 40px;
+            width: 440px;
+            max-width: 90vw;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .setup-card h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1.05rem;
+            color: #000;
+            background: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #555;
+        }
+
+        .duration-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .duration-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.05rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+
+        .btn-primary {
+            background: #000;
+            color: #fff;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #000;
+            border: 1px solid #ccc;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .btn-danger {
+            background: #fff;
+            color: #dc2626;
+            border: 1px solid #dc2626;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        /* Sheet view */
+        #log-view {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            padding: 70px 40px 40px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #log-view.active {
+            display: flex;
+        }
+
+        .sheet {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .sheet-title {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .sheet-subtitle {
+            font-size: 1.05rem;
+            color: #777;
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .sheet-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 36px;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #000;
+        }
+
+        .sheet-meta .meta-label {
+            color: #777;
+        }
+
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .log-table th,
+        .log-table td {
+            border: 1px solid #ccc;
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 1.05rem;
+        }
+
+        .log-table th {
+            font-weight: 700;
+            background: #fafafa;
+        }
+
+        .log-table col.col-time {
+            width: 90px;
+        }
+
+        .log-table tbody tr {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .log-table tbody tr:hover {
+            background: #f2f6ff;
+        }
+
+        .log-table td.incident-cell {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .log-empty {
+            text-align: center;
+            color: #aaa;
+            padding: 28px 14px;
+            cursor: default;
+        }
+
+        .log-empty:hover {
+            background: transparent;
+        }
+
+        .sheet-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .sheet-actions .btn {
+            width: auto;
+            min-width: 200px;
+            margin-top: 0;
+        }
+
+        /* Home link */
+        .home-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #555;
+            text-decoration: none;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px 14px;
+            z-index: 201;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .home-link:hover {
+            background: #eee;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Home link -->
+    <a class="home-link" href="index.html">&larr; Home</a>
+
+    <!-- Setup overlay -->
+    <div class="overlay" id="setup-overlay">
+        <div class="setup-card">
+            <h1>New Incident Log Sheet</h1>
+            <div class="form-group">
+                <label for="room">Room</label>
+                <input type="text" id="room" placeholder="e.g. Sports Hall">
+            </div>
+            <div class="form-group">
+                <label for="exam-name">Exam</label>
+                <input type="text" id="exam-name" placeholder="e.g. Biology Paper 4">
+            </div>
+            <div class="form-group">
+                <label for="sheet-date">Date</label>
+                <input type="date" id="sheet-date" lang="en-GB">
+            </div>
+            <div class="form-group">
+                <label for="sheet-email">Submit to email</label>
+                <input type="email" id="sheet-email" placeholder="name@school.org">
+            </div>
+            <button class="btn btn-primary" id="btn-start">Start Log Sheet</button>
+        </div>
+    </div>
+
+    <!-- Sheet view -->
+    <div id="log-view">
+        <div class="sheet">
+            <h1 class="sheet-title">Exams Incident Log Sheet</h1>
+            <p class="sheet-subtitle">Use it to log toilet, sickbay, and incidents in general</p>
+
+            <div class="sheet-meta">
+                <span><span class="meta-label">Room:</span> <strong id="meta-room"></strong></span>
+                <span><span class="meta-label">Exam:</span> <strong id="meta-exam"></strong></span>
+                <span><span class="meta-label">Date:</span> <strong id="meta-date"></strong></span>
+            </div>
+
+            <table class="log-table">
+                <colgroup>
+                    <col>
+                    <col>
+                    <col class="col-time">
+                    <col class="col-time">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>Candidate</th>
+                        <th>Incident</th>
+                        <th>Left</th>
+                        <th>Back</th>
+                    </tr>
+                </thead>
+                <tbody id="log-body">
+                    <!-- rows injected by JS -->
+                </tbody>
+            </table>
+
+            <div class="sheet-actions">
+                <button class="btn btn-primary" id="btn-add">Add Log</button>
+                <button class="btn btn-secondary" id="btn-submit">Submit Sheet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entry modal (add / edit) -->
+    <div class="overlay hidden" id="entry-overlay">
+        <div class="setup-card">
+            <h1 id="entry-title">Add Log</h1>
+            <div class="form-group">
+                <label for="entry-candidate">Candidate</label>
+                <input type="text" id="entry-candidate" placeholder="Candidate name or number">
+            </div>
+            <div class="form-group">
+                <label for="entry-incident">Incident</label>
+                <input type="text" id="entry-incident" placeholder="e.g. Toilet, Sickbay, Late arrival">
+            </div>
+            <div class="duration-row">
+                <div class="form-group">
+                    <label for="entry-left">Left</label>
+                    <input type="text" id="entry-left" inputmode="numeric" maxlength="5" placeholder="HH:MM" pattern="([01][0-9]|2[0-3]):[0-5][0-9]">
+                </div>
+                <div class="form-group">
+                    <label for="entry-back">Back</label>
+                    <input type="text" id="entry-back" inputmode="numeric" maxlength="5" placeholder="HH:MM" pattern="([01][0-9]|2[0-3]):[0-5][0-9]">
+                </div>
+            </div>
+            <button class="btn btn-primary" id="entry-save">Save Log</button>
+            <button class="btn btn-danger" id="entry-delete">Delete Log</button>
+            <button class="btn btn-secondary" id="entry-cancel">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // State
+        const logs = []; // array of { candidate, incident, left, back }
+        let editingIndex = -1; // -1 = adding new
+        const sheet = { room: '', exam: '', date: '', email: '' }; // date is the formatted DD/MM/YYYY
+
+        // DOM refs
+        const setupOverlay = document.getElementById('setup-overlay');
+        const logView = document.getElementById('log-view');
+        const entryOverlay = document.getElementById('entry-overlay');
+        const logBody = document.getElementById('log-body');
+
+        const roomInput = document.getElementById('room');
+        const examNameInput = document.getElementById('exam-name');
+        const dateInput = document.getElementById('sheet-date');
+        const emailInput = document.getElementById('sheet-email');
+
+        const entryTitle = document.getElementById('entry-title');
+        const entryCandidate = document.getElementById('entry-candidate');
+        const entryIncident = document.getElementById('entry-incident');
+        const entryLeft = document.getElementById('entry-left');
+        const entryBack = document.getElementById('entry-back');
+        const entryDelete = document.getElementById('entry-delete');
+
+        // Helpers
+        function pad(n) {
+            return String(n).padStart(2, '0');
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '';
+            const [y, m, d] = iso.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Default the date to today
+        const today = new Date();
+        dateInput.value = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+        // Start the sheet
+        document.getElementById('btn-start').addEventListener('click', () => {
+            const room = roomInput.value.trim();
+            const exam = examNameInput.value.trim();
+            const date = dateInput.value;
+            const email = emailInput.value.trim();
+
+            if (!room || !exam || !date || !email) {
+                alert('Please enter the room, exam name, date, and email.');
+                return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+
+            sheet.room = room;
+            sheet.exam = exam;
+            sheet.date = formatDate(date);
+            sheet.email = email;
+
+            document.getElementById('meta-room').textContent = room;
+            document.getElementById('meta-exam').textContent = exam;
+            document.getElementById('meta-date').textContent = sheet.date;
+
+            setupOverlay.classList.add('hidden');
+            logView.classList.add('active');
+        });
+
+        // Render the table
+        function renderTable() {
+            logBody.innerHTML = '';
+
+            if (logs.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td class="log-empty" colspan="4">No logs yet &mdash; press <strong>Add Log</strong> to record one.</td>';
+                logBody.appendChild(tr);
+                return;
+            }
+
+            logs.forEach((log, i) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${escapeHtml(log.candidate)}</td>
+                    <td class="incident-cell">${escapeHtml(log.incident)}</td>
+                    <td>${escapeHtml(log.left)}</td>
+                    <td>${escapeHtml(log.back)}</td>
+                `;
+                tr.addEventListener('click', () => openEntry(i));
+                logBody.appendChild(tr);
+            });
+        }
+
+        // Open the entry modal (add when index omitted/-1, edit otherwise)
+        function openEntry(index) {
+            editingIndex = (typeof index === 'number') ? index : -1;
+
+            if (editingIndex >= 0) {
+                const log = logs[editingIndex];
+                entryTitle.textContent = 'Edit Log';
+                entryCandidate.value = log.candidate;
+                entryIncident.value = log.incident;
+                entryLeft.value = log.left;
+                entryBack.value = log.back;
+                entryDelete.style.display = 'block';
+            } else {
+                entryTitle.textContent = 'Add Log';
+                entryCandidate.value = '';
+                entryIncident.value = '';
+                entryLeft.value = '';
+                entryBack.value = '';
+                entryDelete.style.display = 'none';
+            }
+
+            entryOverlay.classList.remove('hidden');
+            entryCandidate.focus();
+        }
+
+        function closeEntry() {
+            entryOverlay.classList.add('hidden');
+            editingIndex = -1;
+        }
+
+        // Add Log button
+        document.getElementById('btn-add').addEventListener('click', () => openEntry());
+
+        // Save entry
+        document.getElementById('entry-save').addEventListener('click', () => {
+            const entry = {
+                candidate: entryCandidate.value.trim(),
+                incident: entryIncident.value.trim(),
+                left: entryLeft.value,
+                back: entryBack.value
+            };
+
+            if (!entry.candidate && !entry.incident) {
+                alert('Please enter at least a candidate or an incident.');
+                return;
+            }
+
+            const timeRe = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
+            if ((entry.left && !timeRe.test(entry.left)) || (entry.back && !timeRe.test(entry.back))) {
+                alert('Times must be in 24-hour HH:MM format (00:00 to 23:59).');
+                return;
+            }
+
+            if (editingIndex >= 0) {
+                logs[editingIndex] = entry;
+            } else {
+                logs.push(entry);
+            }
+
+            renderTable();
+            closeEntry();
+        });
+
+        // Delete entry
+        entryDelete.addEventListener('click', () => {
+            if (editingIndex >= 0) {
+                logs.splice(editingIndex, 1);
+                renderTable();
+            }
+            closeEntry();
+        });
+
+        // Cancel
+        document.getElementById('entry-cancel').addEventListener('click', closeEntry);
+        entryOverlay.addEventListener('click', (e) => {
+            if (e.target === entryOverlay) closeEntry();
+        });
+
+        // Build CSV of the table (RFC 4180 style escaping)
+        function csvEscape(value) {
+            const v = value == null ? '' : String(value);
+            return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+        }
+
+        function buildCsv() {
+            const rows = [['Candidate', 'Incident', 'Left', 'Back']];
+            logs.forEach(l => rows.push([l.candidate, l.incident, l.left, l.back]));
+            return rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
+        }
+
+        // Submit Sheet: open a pre-addressed email draft with the CSV in the body
+        document.getElementById('btn-submit').addEventListener('click', () => {
+            if (logs.length === 0) {
+                alert('Add at least one log before submitting the sheet.');
+                return;
+            }
+
+            const subject = `Incident Log Sheet — ${sheet.exam} — ${sheet.date}`;
+            const body =
+                `Room: ${sheet.room}\r\n` +
+                `Exam: ${sheet.exam}\r\n` +
+                `Date: ${sheet.date}\r\n\r\n` +
+                buildCsv() + '\r\n';
+
+            window.location.href =
+                `mailto:${encodeURIComponent(sheet.email)}` +
+                `?subject=${encodeURIComponent(subject)}` +
+                `&body=${encodeURIComponent(body)}`;
+        });
+
+        // Initial render
+        renderTable();
+    </script>
+</body>
+</html>
