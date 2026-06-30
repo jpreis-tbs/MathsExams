@@ -1,6 +1,6 @@
-# Exams Hall
+# Maths exams
 
-A minimalistic web-based timer for IB and IGCSE exams. Single-page HTML/CSS/JS application with no dependencies.
+A minimalistic web-based timer for IB and IGCSE exams. Single-page HTML/CSS/JS application with no dependencies. Based on oscarneiva 's Exams Hall.
 
 ## Features
 
@@ -20,7 +20,7 @@ A minimalistic web-based timer for IB and IGCSE exams. Single-page HTML/CSS/JS a
 
 ## Usage
 
-1. Open `index.html` in a browser — the **Exams Hall** landing page
+1. Open `index.html` in a browser — the **Maths exams** landing page
 2. Click **Exam Timer** (or **Incident Log Sheet**)
 3. On the timer page, select exam board (IB or IGCSE)
 4. Enter exam name, duration, and start time
