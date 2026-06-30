@@ -210,9 +210,11 @@
             box-shadow: none;
         }
 
-        .exam-card.drag-over {
-            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
-        }
+        .exam-card.drag-over { 
+		opacity: 0.4 !important;
+		border: 2px dashed #4b5563 !important; 
+		transform: scale(0.98);
+}
 
         .exam-card:active {
             cursor: grabbing;
@@ -613,9 +615,6 @@
     .exam-card.igcse .exam-finished-overlay {
         background-color: #dc2626;
     }
-.exam-card.igcse .exam-finished-overlay {
-        background-color: #dc2626;
-    }
 
     /* Maths Board Colors */
     .exam-card.maths {
@@ -824,19 +823,17 @@
     </div>
 
     <script>
-        // State
-        const timers = []; // array of { id, board, name, durationMin, startMin, times, el }
-        let tickInterval = null;
-        let nextId = 0;
         const MAX_TIMERS = 16;
+        const timers = [];
+        let nextId = 1;
+        let tickInterval = null;
 
-        // DOM refs
         const setupOverlay = document.getElementById('setup-overlay');
         const timerView = document.getElementById('timer-view');
         const cardsGrid = document.getElementById('cards-grid');
         const btnCancel = document.getElementById('btn-cancel');
 
-// Central Data Presets for specific exams
+        // Central Data Presets for specific exams
 const examPresets = {
     "maths-kangaroo": {
         durationMin: 100,      // 1 hour 40 minutes
@@ -862,19 +859,13 @@ const examPresets = {
         const examNameInput = document.getElementById('exam-name');
         const durationHoursInput = document.getElementById('duration-hours');
         const durationMinutesInput = document.getElementById('duration-minutes');
-        const startTimeInput = document.getElementById('start-time');
+const startTimeInput = document.getElementById('start-time');
 
-// Auto-fill duration fields when a preset is selected
-examBoardSelect.addEventListener('change', (e) => {
-    const selected = e.target.value;
-    
-    if (examPresets[selected]) {
-        // Auto-fill duration based on preset
-        const mins = examPresets[selected].durationMin;
-        durationHoursInput.value = Math.floor(mins / 60);
-        durationMinutesInput.value = mins % 60;
-    }
-});
+        // Safely fetch custom inputs (if they exist in your HTML)
+        const extraTimeTypeInput = document.getElementById('extra-time-type');
+        const extraTimeValueInput = document.getElementById('extra-time-value');
+        const customBoardNameInput = document.getElementById('custom-board-name');
+        const customWarningTimesInput = document.getElementById('custom-warning-times');
 
         // Helpers
         function pad(n) {
@@ -908,46 +899,53 @@ examBoardSelect.addEventListener('change', (e) => {
             return now.getHours() * 60 + now.getMinutes();
         }
 
-        // Compute key times for a timer
-function computeTimes(board, startMin, durationMin, extraMin = 0, customWarnings = []) {
-    const times = [];
-    const endMin = startMin + durationMin;
-    const isIB = board === 'IB';
+        // Compute key times for a timer (Adapted for custom warnings & extra time)
+        function computeTimes(board, startMin, durationMin, customWarnings = [], extraTimeSec = null) {
+            const times = [];
+            const endMin = startMin + durationMin;
+            const isIB = board === 'IB';
 
-    if (isIB) {
-        times.push({ key: 'reading', label: 'READING', time: startMin - 5, extraTime: null });
-    }
-
-    times.push({ key: 'start', label: 'START', time: startMin, extraTime: null });
-
-    if (isIB && durationMin > 30) {
-        times.push({ key: '30min', label: '30 MIN', time: endMin - 30, extraTime: extraMin > 0 ? endMin + extraMin - 30 : null });
-    }
-
-    if (customWarnings && customWarnings.length > 0) {
-        customWarnings.sort((a, b) => b - a).forEach(w => {
-            if (durationMin > w) {
-                times.push({ key: w + 'min', label: w + ' MIN', time: endMin - w, extraTime: extraMin > 0 ? endMin + extraMin - w : null });
+            if (isIB) {
+                times.push({ key: 'reading', label: 'READING', time: startMin - 5 });
             }
-        });
-    }
 
-    if (durationMin > 5) {
-        times.push({ key: '5min', label: '5 MIN', time: endMin - 5, extraTime: extraMin > 0 ? endMin + extraMin - 5 : null });
-    }
+            times.push({ key: 'start', label: 'START', time: startMin });
 
-    times.push({ key: 'end', label: 'END', endLabel: 'END Regular time', time: endMin, extraTime: extraMin > 0 ? endMin + extraMin : null });
+            if (isIB && durationMin > 30) {
+                times.push({ key: '30min', label: '30 MIN', time: endMin - 30 });
+            }
 
-    if (extraMin > 0) {
-        times.push({ key: 'extratime', label: 'EXTRA TIME', time: endMin + extraMin, extraTime: null });
-    }
+            // Apply custom warnings if provided, otherwise default to 5 min
+            if (customWarnings && customWarnings.length > 0) {
+                customWarnings.forEach(w => {
+                    if (durationMin > w) {
+                        times.push({ key: `${w}min`, label: `${w} MIN`, time: endMin - w });
+                    }
+                });
+            } else if (durationMin > 5) {
+                times.push({ key: '5min', label: '5 MIN', time: endMin - 5 });
+            }
 
-    return times;
-}
+            times.push({ key: 'end', label: 'END', time: endMin });
+
+            // Handle extra time (Default is 25%, override if custom extraTimeSec is set)
+            let extraMin = Math.round(durationMin * 0.25); 
+            if (extraTimeSec !== null) {
+                extraMin = Math.round(extraTimeSec / 60);
+            }
+
+            if (extraMin > 0) {
+                times.push({ key: 'extratime', label: 'EXTRA TIME', time: endMin + extraMin });
+            }
+
+            // Sort times chronologically
+            times.sort((a, b) => a.time - b.time);
+
+            return times;
+        }
 
         // Show setup form
         function showSetup() {
-            // Reset form
             examNameInput.value = '';
             durationHoursInput.value = '1';
             durationMinutesInput.value = '30';
@@ -955,21 +953,29 @@ function computeTimes(board, startMin, durationMin, extraMin = 0, customWarnings
             startTimeInput.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
             examBoardSelect.value = 'IB';
 
-            // Show cancel button if timers already exist
-            btnCancel.style.display = timers.length > 0 ? 'block' : 'none';
+            if (extraTimeValueInput) extraTimeValueInput.value = '';
+            if (customWarningTimesInput) customWarningTimesInput.value = '';
 
+            btnCancel.style.display = timers.length > 0 ? 'block' : 'none';
             setupOverlay.classList.remove('hidden');
         }
 
         // Build a card DOM element for a timer
         function buildCard(timer) {
-            const isIB = timer.board === 'IB';
             const card = document.createElement('div');
-            card.className = 'exam-card ' + (isIB ? 'ib' : 'igcse');
+            
+            // FIX: Apply proper CSS classes for IB, IGCSE, and Maths
+            let boardClass = 'igcse'; // default
+            if (timer.board === 'IB') {
+                boardClass = 'ib';
+            } else if (timer.board.toLowerCase().startsWith('maths')) {
+                boardClass = 'maths';
+            }
+            
+            card.className = `exam-card ${boardClass}`;
             card.dataset.timerId = timer.id;
             card.draggable = true;
 
-            // Prevent drag when interacting with buttons/inputs
             card.addEventListener('mousedown', (e) => {
                 if (e.target.closest('button, input')) {
                     card.draggable = false;
@@ -977,17 +983,15 @@ function computeTimes(board, startMin, durationMin, extraMin = 0, customWarnings
             });
             card.addEventListener('mouseup', () => { card.draggable = true; });
 
-            // Remove button
             const removeBtn = document.createElement('button');
             removeBtn.className = 'card-remove';
             removeBtn.textContent = '\u00d7';
             removeBtn.addEventListener('click', () => removeTimer(timer.id));
             card.appendChild(removeBtn);
 
-            // Header
             const boardLabel = document.createElement('div');
             boardLabel.className = 'exam-board-label';
-            boardLabel.textContent = timer.board;
+            boardLabel.textContent = timer.customBoardName || timer.board;
             card.appendChild(boardLabel);
 
             const nameLabel = document.createElement('div');
@@ -1000,7 +1004,6 @@ function computeTimes(board, startMin, durationMin, extraMin = 0, customWarnings
             durLabel.textContent = minutesToHM(timer.durationMin);
             card.appendChild(durLabel);
 
-            // Time rows
             const rowsContainer = document.createElement('div');
             rowsContainer.className = 'time-rows';
 
@@ -1012,17 +1015,14 @@ function computeTimes(board, startMin, durationMin, extraMin = 0, customWarnings
                     row.className = 'start-edit-row';
                     row.dataset.key = t.key;
                     row.innerHTML = `
-                        <span class="label"><span>${t.label}</span></span>
-                <div class="time-col" style="display: flex; flex-direction: column; align-items: flex-end;">
-                    <input type="text" inputmode="numeric" maxlength="5" size="5" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" class="start-edit-input" value="${minutesToTimeStr(t.time)}">
-                </div>
+                        <span class="label">${t.label}</span>
+                        <input type="text" inputmode="numeric" maxlength="5" size="5" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" class="start-edit-input" value="${minutesToTimeStr(t.time)}">
                     `;
                     rowsContainer.appendChild(row);
 
                     const editInput = row.querySelector('.start-edit-input');
                     editInput.addEventListener('change', () => {
                         if (!/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(editInput.value)) {
-                            // Invalid entry: revert to the current value
                             const cur = timer.times.find(x => x.key === t.key);
                             editInput.value = minutesToTimeStr(cur.time);
                             return;
@@ -1033,7 +1033,7 @@ function computeTimes(board, startMin, durationMin, extraMin = 0, customWarnings
                         } else {
                             timer.startMin = newTime;
                         }
-                        timer.times = computeTimes(timer.board, timer.startMin, timer.durationMin, Math.round(timer.extraTimeSec / 60), timer.customWarnings || []);
+                        timer.times = computeTimes(timer.board, timer.startMin, timer.durationMin, timer.customWarnings, timer.extraTimeSec);
                         refreshCardRows(timer);
                     });
                 } else {
@@ -1041,14 +1041,8 @@ function computeTimes(board, startMin, durationMin, extraMin = 0, customWarnings
                     row.className = 'time-row';
                     row.dataset.key = t.key;
                     row.innerHTML = `
-                        <span class="label" style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
-                    <span class="main-label">${t.label}</span>
-                    ${t.key.includes('min') && t.extraTime !== null ? `<span class="extra-label">Extra Time</span>` : ''}
-                </span>
-                <div class="time-col" style="display: flex; flex-direction: column; align-items: flex-end;">
-                    <span class="value main-time-val">${minutesToTimeStr(t.time)}</span>
-                    ${t.extraTime !== null ? `<span class="value extra-time-val" style="font-size: 0.85em; color: gray;">${minutesToTimeStr(t.extraTime)}</span>` : ''}
-                </div>
+                        <span class="label">${t.label}</span>
+                        <span class="value">${minutesToTimeStr(t.time)}</span>
                     `;
                     rowsContainer.appendChild(row);
                 }
@@ -1056,19 +1050,11 @@ function computeTimes(board, startMin, durationMin, extraMin = 0, customWarnings
 
             card.appendChild(rowsContainer);
 
-            // Countdown
             const countdownSection = document.createElement('div');
             countdownSection.className = 'countdown-section';
             countdownSection.innerHTML = `
                 <div class="countdown-status"></div>
-        <div class="countdown-wrapper" style="position: relative; display: inline-flex; justify-content: center; align-items: center;">
-            <div class="countdown-time">--:--</div>
-            <div class="exam-finished-overlay" style="display: none; position: absolute; transform: rotate(-15deg); color: #fff; padding: 6px 16px; font-weight: bold; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 10; white-space: nowrap;">Exam has finished</div>
-        </div>
-        <div class="extra-countdown-container" style="display: none; margin-top: 8px; flex-direction: column; align-items: center;">
-            <div class="extra-countdown-time" style="font-size: 2rem; font-weight: 600; font-style: italic; color: #666;">--:--:--</div>
-            <div class="extra-countdown-label" style="font-size: 0.95rem; color: #888;">TIME for extra time</div>
-        </div>
+                <div class="countdown-time">--:--</div>
             `;
             card.appendChild(countdownSection);
 
@@ -1076,7 +1062,6 @@ function computeTimes(board, startMin, durationMin, extraMin = 0, customWarnings
             return card;
         }
 
-        // Refresh row values after start time edit
         function refreshCardRows(timer) {
             const editableKey = timer.board === 'IB' ? 'reading' : 'start';
             const rowsContainer = timer.el.querySelector('.time-rows');
@@ -1093,7 +1078,6 @@ function computeTimes(board, startMin, durationMin, extraMin = 0, customWarnings
             });
         }
 
-        // Render the add-timer placeholder card
         function renderAddCard() {
             const existing = cardsGrid.querySelector('.add-card');
             if (existing) existing.remove();
@@ -1111,60 +1095,7 @@ function computeTimes(board, startMin, durationMin, extraMin = 0, customWarnings
                 cardsGrid.appendChild(addCard);
             }
         }
-// Generate absolute events for global announcements
-function generateEvents(data) {
-    const events = [];
-    const now = new Date();
-    // Base epoch for today at 00:00:00
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime() / 1000;
-    const startEpoch = startOfToday + (data.startMin * 60);
-    const endEpoch = startEpoch + (data.durationMin * 60);
-    const boardDisplay = data.board === 'Custom' ? (data.customBoardName || 'Custom') : data.board;
 
-    // Standard Events
-    events.push([startEpoch, boardDisplay, data.name, 'Exam Starts']);
-    events.push([endEpoch, boardDisplay, data.name, 'Exam Ends']);
-
-    // IB Specific Events
-    if (data.board === 'IB') {
-        events.push([startEpoch - (5 * 60), boardDisplay, data.name, 'Reading Time Starts']);
-        if (data.durationMin > 30) events.push([endEpoch - (30 * 60), boardDisplay, data.name, '30 Min Warning']);
-    }
-
-    // Universal & Custom Warnings
-    if (data.durationMin > 5) {
-        events.push([endEpoch - (5 * 60), boardDisplay, data.name, '5 Min Warning']);
-    }
-    if (data.customWarnings && data.customWarnings.length > 0) {
-        data.customWarnings.forEach(w => {
-            if (data.durationMin > w) events.push([endEpoch - (w * 60), boardDisplay, data.name, `${w} Min Warning`]);
-        });
-    }
-
-    // Extra Time Event
-    if (data.extraTimeSec && data.extraTimeSec > 0) {
-        const extraEndEpoch = endEpoch + data.extraTimeSec;
-        events.push([endEpoch, boardDisplay, data.name, 'Extra Time Starts']);
-        events.push([extraEndEpoch, boardDisplay, data.name, 'Extra Time Ends']);
-        
-        // Add extra time warnings
-        if (data.board === 'IB' && data.durationMin > 30) {
-            events.push([extraEndEpoch - (30 * 60), boardDisplay, data.name, 'Extra Time 30 Min Warning']);
-        }
-        if (data.durationMin > 5) {
-            events.push([extraEndEpoch - (5 * 60), boardDisplay, data.name, 'Extra Time 5 Min Warning']);
-        }
-        if (data.customWarnings && data.customWarnings.length > 0) {
-            data.customWarnings.forEach(w => {
-                if (data.durationMin > w) events.push([extraEndEpoch - (w * 60), boardDisplay, data.name, `Extra Time ${w} Min Warning`]);
-            });
-        }
-    }
-
-    // Sort chronologically
-    return events.sort((a, b) => a[0] - b[0]);
-}
-        // Add a timer
         function addTimer(data) {
             if (timers.length >= MAX_TIMERS) {
                 alert('Maximum of ' + MAX_TIMERS + ' timers reached.');
@@ -1172,23 +1103,21 @@ function generateEvents(data) {
             }
 
             const timer = {
-        id: nextId++,
-        board: data.board,
-        name: data.name,
-        durationMin: data.durationMin,
-        startMin: data.startMin,
-        customBoardName: data.customBoardName || null,
-        extraTimeSec: data.extraTimeSec || 0,
-        customWarnings: data.customWarnings || [],
-        events: generateEvents(data),
-        times: computeTimes(data.board, data.startMin, data.durationMin, data.extraTimeSec ? Math.round(data.extraTimeSec / 60) : 0, data.customWarnings || []),
-        el: null
-    };
+                id: nextId++,
+                board: data.board,
+                name: data.name,
+                durationMin: data.durationMin,
+                startMin: data.startMin,
+                customBoardName: data.customBoardName,
+                customWarnings: data.customWarnings,
+                extraTimeSec: data.extraTimeSec,
+                times: computeTimes(data.board, data.startMin, data.durationMin, data.customWarnings, data.extraTimeSec),
+                el: null
+            };
 
             timers.push(timer);
             const card = buildCard(timer);
 
-            // Insert before add-card placeholder
             const addCard = cardsGrid.querySelector('.add-card');
             if (addCard) {
                 cardsGrid.insertBefore(card, addCard);
@@ -1197,24 +1126,19 @@ function generateEvents(data) {
             }
 
             renderAddCard();
-
-            // Show timer view, hide setup
             setupOverlay.classList.add('hidden');
             timerView.classList.add('active');
 
-            // Start tick if not running
             if (!tickInterval) {
                 tick();
                 tickInterval = setInterval(tick, 1000);
             }
 
-            // Show save reminder on first timer
             if (timers.length === 1) {
                 showToast();
             }
         }
 
-        // Toast popup
         function showToast() {
             document.getElementById('toast').classList.add('visible');
             document.getElementById('toast-backdrop').classList.add('visible');
@@ -1225,7 +1149,6 @@ function generateEvents(data) {
             document.getElementById('toast-backdrop').classList.remove('visible');
         }
 
-        // Remove a timer
         function removeTimer(id) {
             const idx = timers.findIndex(t => t.id === id);
             if (idx === -1) return;
@@ -1235,7 +1158,6 @@ function generateEvents(data) {
 
             renderAddCard();
 
-            // If no timers left, go back to setup
             if (timers.length === 0) {
                 clearInterval(tickInterval);
                 tickInterval = null;
@@ -1243,191 +1165,100 @@ function generateEvents(data) {
                 showSetup();
             }
         }
-// Announcement Engine: aggregate, filter and sort events
-function getNextAnnouncement() {
-    const currentEpoch = Date.now() / 1000;
-    const masterList = [];
 
-    // 1. Aggregation: Pool events from all active timers
-    timers.forEach(timer => {
-        if (timer.events) {
-            masterList.push(...timer.events);
-        }
-    });
-
-    // 2. Filtering: Remove events where the timestamp is in the past
-    const futureEvents = masterList.filter(event => event[0] >= currentEpoch);
-
-    // 3. Sorting: Sort remaining future events chronologically
-    futureEvents.sort((a, b) => a[0] - b[0]);
-
-    // Identifying the Next Event
-    if (futureEvents.length === 0) {
-        return null; // No future events remaining
-    }
-    
-    const nextEvent = futureEvents[0];
-    let isMultiple = false;
-
-    // 4. "Multiple" Event Detection
-    if (futureEvents.length > 1 && futureEvents[1][0] === nextEvent[0]) {
-        isMultiple = true;
-    }
-
-    return {
-        timestamp: nextEvent[0],
-        board: nextEvent[1],
-        name: nextEvent[2],
-        type: nextEvent[3],
-        isMultiple: isMultiple
-    };
-}
-        // Tick: update current time and all timer cards
         function tick() {
             const now = new Date();
             document.getElementById('current-time').textContent =
                 `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-// Global Next Announcement Display Logic
-    const announcementEl = document.getElementById('next-announcement');
-    const nextAnnounce = getNextAnnouncement();
-    
-    if (!nextAnnounce) {
-        if (announcementEl) announcementEl.style.display = 'none';
-    } else {
-        const eventDate = new Date(nextAnnounce.timestamp * 1000);
-        const timeStr = `${pad(eventDate.getHours())}:${pad(eventDate.getMinutes())}:${pad(eventDate.getSeconds())}`;
-        
-        if (nextAnnounce.isMultiple) {
-            announcementEl.textContent = `${timeStr} - Multiple`;
-        } else {
-            announcementEl.textContent = `${timeStr} - ${nextAnnounce.board} - ${nextAnnounce.name}: ${nextAnnounce.type}`;
-        }
-        if (announcementEl) announcementEl.style.display = 'block';
-    }
+
             const currentMin = nowMinutes();
             const currentSec = nowSeconds();
 
             timers.forEach(timer => {
-                // Clear previous active states
-        const allRows = timer.el.querySelectorAll('.time-row, .start-edit-row');
-        allRows.forEach(r => {
-            r.classList.remove('active-warning-invert', 'active-extra-warning', 'regular-end-marker');
-        });
+                let highlightClass = 'highlighted-igcse'; 
+                if (timer.board === 'IB') highlightClass = 'highlighted-ib';
+                if (timer.board.toLowerCase().startsWith('maths')) highlightClass = 'highlighted-maths'; // If you added this CSS
 
-        timer.times.forEach(t => {
-            const row = timer.el.querySelector(`[data-key="${t.key}"]`);
-            if (!row) return;
+                const rowsContainer = timer.el.querySelector('.time-rows');
+                const rows = rowsContainer.children;
 
-            // Active warning inversions
-            if (t.key.includes('min') || t.key === 'reading') {
-                // Regular warning active (1 minute duration)
-                if (currentMin >= t.time && currentMin < t.time + 1) {
-                    row.classList.add('active-warning-invert');
+                let currentIdx = -1;
+                let activeMilestoneIdx = -1;
+                timer.times.forEach((t, i) => {
+                    if (currentMin >= t.time) currentIdx = i;
+                    if (currentMin === t.time) activeMilestoneIdx = i;
+                });
+
+                const statusEl = timer.el.querySelector('.countdown-status');
+                const countdownEl = timer.el.querySelector('.countdown-time');
+
+                const endTime = timer.times.find(t => t.key === 'end');
+                const startTime = timer.times.find(t => t.key === 'start');
+                const readingTime = timer.times.find(t => t.key === 'reading');
+                const extraTime = timer.times.find(t => t.key === 'extratime');
+
+                const endSec = endTime.time * 60;
+                const startSec = startTime.time * 60;
+                const readingSec = readingTime ? readingTime.time * 60 : null;
+                const finalSec = extraTime ? extraTime.time * 60 : endSec;
+
+                timer.times.forEach((t, i) => {
+                    if (rows[i]) rows[i].classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths');
+                });
+                countdownEl.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths');
+
+                if (activeMilestoneIdx >= 0) {
+                    if (rows[activeMilestoneIdx]) {
+                        rows[activeMilestoneIdx].classList.add(highlightClass);
+                    }
+                } else if (currentIdx >= 0 && currentSec < finalSec) {
+                    countdownEl.classList.add(highlightClass);
                 }
-                // Extra time warning active (1 minute duration)
-                if (t.extraTime !== null && currentMin >= t.extraTime && currentMin < t.extraTime + 1) {
-                    row.classList.add('active-warning-invert', 'active-extra-warning');
-                }
-            }
 
-            // Regular end marker logic
-            if (t.key === 'end') {
-                const mainLabel = row.querySelector('.main-label');
-                if (currentMin >= t.time) {
-                    row.classList.add('regular-end-marker');
-                    if (mainLabel) mainLabel.textContent = t.endLabel || 'END Regular time';
+                if (currentSec >= finalSec) {
+                    statusEl.textContent = 'EXAM ENDED';
+                    countdownEl.textContent = '00:00';
+                } else if (currentSec >= endSec) {
+                    statusEl.textContent = 'Extra Time';
+                    const rem = finalSec - currentSec;
+                    const rh = Math.floor(rem / 3600);
+                    const rm = Math.floor((rem % 3600) / 60);
+                    const rs = rem % 60;
+                    countdownEl.textContent = rh > 0
+                        ? `${pad(rh)}:${pad(rm)}:${pad(rs)}`
+                        : `${pad(rm)}:${pad(rs)}`;
+                } else if (currentSec >= startSec) {
+                    statusEl.textContent = 'Time Remaining';
+                    const rem = endSec - currentSec;
+                    const rh = Math.floor(rem / 3600);
+                    const rm = Math.floor((rem % 3600) / 60);
+                    const rs = rem % 60;
+                    countdownEl.textContent = rh > 0
+                        ? `${pad(rh)}:${pad(rm)}:${pad(rs)}`
+                        : `${pad(rm)}:${pad(rs)}`;
+                } else if (readingSec !== null && currentSec >= readingSec) {
+                    statusEl.textContent = 'Reading Time';
+                    const rem = startSec - currentSec;
+                    const rm = Math.floor(rem / 60);
+                    const rs = rem % 60;
+                    countdownEl.textContent = `${pad(rm)}:${pad(rs)}`;
                 } else {
-                    if (mainLabel) mainLabel.textContent = t.label;
+                    const waitTarget = readingSec !== null ? readingSec : startSec;
+                    statusEl.textContent = 'Waiting to Start';
+                    const rem = waitTarget - currentSec;
+                    const rh = Math.floor(rem / 3600);
+                    const rm = Math.floor((rem % 3600) / 60);
+                    const rs = rem % 60;
+                    countdownEl.textContent = rh > 0
+                        ? `${pad(rh)}:${pad(rm)}:${pad(rs)}`
+                        : `${pad(rm)}:${pad(rs)}`;
                 }
-            }
-        });
-
-        // Countdown elements
-        const statusEl = timer.el.querySelector('.countdown-status');
-        const countdownEl = timer.el.querySelector('.countdown-time');
-        const extraContainer = timer.el.querySelector('.extra-countdown-container');
-        const extraTimeEl = timer.el.querySelector('.extra-countdown-time');
-        const finishedOverlay = timer.el.querySelector('.exam-finished-overlay');
-
-        const endTime = timer.times.find(t => t.key === 'end');
-        const startTime = timer.times.find(t => t.key === 'start');
-        const readingTime = timer.times.find(t => t.key === 'reading');
-        const extraTime = timer.times.find(t => t.key === 'extratime');
-
-        const endSec = endTime.time * 60;
-        const startSec = startTime.time * 60;
-        const readingSec = readingTime ? readingTime.time * 60 : null;
-        const finalSec = extraTime ? extraTime.time * 60 : endSec;
-
-        // Extra Time Secondary Timer Logic
-        if (extraTime && extraContainer) {
-            extraContainer.style.display = 'flex';
-            if (currentSec < finalSec) {
-                const rem = finalSec - currentSec;
-                const rh = Math.floor(rem / 3600);
-                const rm = Math.floor((rem % 3600) / 60);
-                const rs = rem % 60;
-                extraTimeEl.textContent = rh > 0 ? `${pad(rh)}:${pad(rm)}:${pad(rs)}` : `${pad(rm)}:${pad(rs)}`;
-            } else {
-                extraTimeEl.textContent = '00:00:00';
-            }
-        } else if (extraContainer) {
-            extraContainer.style.display = 'none';
-        }
-
-        // Main countdown and finished state logic
-        if (finishedOverlay) finishedOverlay.style.display = 'none';
-        countdownEl.style.color = '';
-        countdownEl.classList.remove('highlighted-ib', 'highlighted-igcse'); // Reset legacy highlights
-
-        if (currentSec >= finalSec) {
-            statusEl.textContent = 'EXAM ENDED';
-            countdownEl.textContent = '00:00';
-            countdownEl.style.color = '#666';
-            if (finishedOverlay) finishedOverlay.style.display = 'flex';
-        } else if (currentSec >= endSec) {
-            statusEl.textContent = 'EXTRA TIME';
-            const rem = finalSec - currentSec;
-            const rm = Math.floor(rem / 60);
-            const rs = rem % 60;
-            countdownEl.textContent = `${pad(rm)}:${pad(rs)}`;
-            countdownEl.style.color = '#dc2626';
-        } else if (currentSec >= startSec) {
-            statusEl.textContent = 'Remaining';
-            const rem = endSec - currentSec;
-            const rm = Math.floor(rem / 60);
-            const rs = rem % 60;
-            countdownEl.textContent = `${pad(rm)}:${pad(rs)}`;
-        } else if (readingSec !== null && currentSec >= readingSec) {
-            statusEl.textContent = 'Reading Time';
-            const rem = startSec - currentSec;
-            const rm = Math.floor(rem / 60);
-            const rs = rem % 60;
-            countdownEl.textContent = `${pad(rm)}:${pad(rs)}`;
-        } else {
-            const waitTarget = readingSec !== null ? readingSec : startSec;
-            statusEl.textContent = 'Waiting to Start';
-            const rem = waitTarget - currentSec;
-            const rh = Math.floor(rem / 3600);
-            const rm = Math.floor((rem % 3600) / 60);
-            const rs = rem % 60;
-            countdownEl.textContent = rh > 0 ? `${pad(rh)}:${pad(rm)}:${pad(rs)}` : `${pad(rm)}:${pad(rs)}`;
-        }
             });
         }
 
         // --- Event listeners ---
-// Toggle Custom Setup Form
-document.getElementById('exam-board').addEventListener('change', (e) => {
-    const customSetupSection = document.getElementById('custom-setup-section');
-    if (e.target.value === 'Custom') {
-        customSetupSection.style.display = 'block';
-    } else {
-        customSetupSection.style.display = 'none';
-    }
-});
 
-        // Add timer from form
+        // FIX: The Add Timer button logic with Custom Arrays & Presets 
         document.getElementById('btn-start').addEventListener('click', () => {
             const board = examBoardSelect.value;
             const name = examNameInput.value.trim() || 'Unnamed Exam';
@@ -1446,55 +1277,36 @@ document.getElementById('exam-board').addEventListener('change', (e) => {
                 return;
             }
 
-            let customBoardName = null; 
-let customWarnings = []; 
-let extraTimeSec = 0;  
+            let customBoardName = null;
+            if (customBoardNameInput) customBoardName = customBoardNameInput.value || null;
 
-// --- NEW: Apply data if a preset is selected ---
-if (examPresets[board]) {
-    customWarnings = examPresets[board].customWarnings;
-    extraTimeSec = examPresets[board].extraTimeSec;
-}
+            // FIX: Convert comma string to an array for custom warnings
+            let customWarnings = [];
+            if (customWarningTimesInput && customWarningTimesInput.value.trim() !== '') {
+                customWarnings = customWarningTimesInput.value.split(',')
+                    .map(str => parseInt(str.trim(), 10))
+                    .filter(num => !isNaN(num));
+            }
 
-// 1. Handle Custom Board Inputs 
-if (board === 'Custom') { 
-        customBoardName = document.getElementById('custom-board-name').value.trim();
-        
-        // Parse the comma-separated warning times into an array of integers
-        const warningsInput = document.getElementById('custom-warning-times').value;
-        if (warningsInput) {
-            customWarnings = warningsInput.split(',')
-                .map(w => parseInt(w.trim()))
-                .filter(w => !isNaN(w));
-        }
-    }
+            // FIX: Extra Time Preset Collision Logic
+            let extraTimeSec = null;
+            if (examPresets[board]) {
+                extraTimeSec = examPresets[board].extraTimeSec;
+            } else if (extraTimeTypeInput && extraTimeValueInput) {
+                const extraTimeType = extraTimeTypeInput.value;
+                const extraTimeValue = parseFloat(extraTimeValueInput.value) || 0;
 
-    // 2. Handle Extra Time Inputs
-    const extraTimeType = document.getElementById('extra-time-type').value;
-    const extraTimeValue = parseFloat(document.getElementById('extra-time-value').value) || 0;
+                if (extraTimeType === 'percentage') {
+                    extraTimeSec = (durationMin * 60) * (extraTimeValue / 100);
+                } else if (extraTimeType === 'absolute') {
+                    extraTimeSec = extraTimeValue * 60;
+                }
+            }
 
-    if (extraTimeType === 'percentage') {
-        // e.g., 25% of a 60 min exam = 15 mins (900 seconds)
-        extraTimeSec = (durationMin * 60) * (extraTimeValue / 100);
-    } else if (extraTimeType === 'absolute') {
-        // e.g., 15 mins = 900 seconds
-        extraTimeSec = extraTimeValue * 60;
-    }
+            const data = { board, name, durationMin, startMin, customBoardName, customWarnings, extraTimeSec };
+            addTimer(data);
+        }); // <- Syntax error fixed here
 
-    // 3. Pass everything to the data object
-    const data = {
-        board,
-        name,
-        durationMin,
-        startMin,
-        customBoardName,
-        customWarnings,
-        extraTimeSec
-    };
-
-    addTimer(data);
-
-        // Cancel button (go back to timer view)
         btnCancel.addEventListener('click', () => {
             setupOverlay.classList.add('hidden');
         });
@@ -1511,11 +1323,8 @@ if (board === 'Custom') {
             reader.onload = (evt) => {
                 try {
                     let data = JSON.parse(evt.target.result);
-
-                    // Support both single timer and array format
                     if (!Array.isArray(data)) data = [data];
 
-                    // Clear existing timers
                     timers.forEach(t => t.el.remove());
                     timers.length = 0;
                     renderAddCard();
@@ -1542,14 +1351,14 @@ if (board === 'Custom') {
         document.getElementById('btn-download').addEventListener('click', () => {
             if (timers.length === 0) return;
             const saveData = timers.map(t => ({
-        board: t.board,
-        name: t.name,
-        durationMin: t.durationMin,
-        startMin: t.startMin,
-        customBoardName: t.customBoardName || null,
-        customWarnings: t.customWarnings || [],
-        extraTimeSec: t.extraTimeSec || 0
-    }));
+                board: t.board,
+                name: t.name,
+                durationMin: t.durationMin,
+                startMin: t.startMin,
+                customBoardName: t.customBoardName,
+                customWarnings: t.customWarnings,
+                extraTimeSec: t.extraTimeSec
+            }));
             const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1598,7 +1407,6 @@ if (board === 'Custom') {
             if (!target || !draggedCard || target === draggedCard) return;
             target.classList.remove('drag-over');
 
-            // Swap DOM positions
             const allCards = [...cardsGrid.querySelectorAll('.exam-card')];
             const dragIdx = allCards.indexOf(draggedCard);
             const dropIdx = allCards.indexOf(target);
@@ -1609,7 +1417,6 @@ if (board === 'Custom') {
                 cardsGrid.insertBefore(draggedCard, target);
             }
 
-            // Sync timers array order to match DOM
             const newOrder = [...cardsGrid.querySelectorAll('.exam-card')].map(
                 el => timers.find(t => t.id === Number(el.dataset.timerId))
             ).filter(Boolean);
@@ -1617,11 +1424,9 @@ if (board === 'Custom') {
             timers.push(...newOrder);
         });
 
-        // Toast dismiss
         document.getElementById('toast-dismiss').addEventListener('click', hideToast);
         document.getElementById('toast-backdrop').addEventListener('click', hideToast);
 
-        // Initial state: show setup
         showSetup();
     </script>
 </body>
