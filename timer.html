@@ -1311,6 +1311,16 @@ const startTimeInput = document.getElementById('start-time');
             setupOverlay.classList.add('hidden');
         });
 
+		// Auto-fill durations based on exam presets
+		examBoardSelect.addEventListener('change', (e) => {
+			const board = e.target.value;
+			if (examPresets[board] && examPresets[board].durationMin) {
+				const totalMins = examPresets[board].durationMin;
+				durationHoursInput.value = Math.floor(totalMins / 60);
+				durationMinutesInput.value = totalMins % 60;
+			}
+		});
+
         // Load button
         document.getElementById('btn-load').addEventListener('click', () => {
             document.getElementById('file-input').click();
