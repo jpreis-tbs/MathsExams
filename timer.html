@@ -946,13 +946,16 @@ const startTimeInput = document.getElementById('start-time');
         // Show setup form
         function showSetup() {
             examNameInput.value = '';
-            durationHoursInput.value = '1';
-            durationMinutesInput.value = '30';
+            // Set default duration for Custom (0 hours, 45 minutes)
+            durationHoursInput.value = '0';
+            durationMinutesInput.value = '45';
             const now = new Date();
             startTimeInput.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
             examBoardSelect.value = 'Custom';
 
-            if (extraTimeValueInput) extraTimeValueInput.value = '';
+            // Set default Extra Time to 25% for Custom
+            if (extraTimeTypeInput) extraTimeTypeInput.value = 'percentage';
+            if (extraTimeValueInput) extraTimeValueInput.value = '25';
             if (customWarningTimesInput) customWarningTimesInput.value = '';
 
             btnCancel.style.display = timers.length > 0 ? 'block' : 'none';
@@ -1310,15 +1313,37 @@ const startTimeInput = document.getElementById('start-time');
             setupOverlay.classList.add('hidden');
         });
 
-		// Auto-fill durations based on exam presets
-		examBoardSelect.addEventListener('change', (e) => {
-			const board = e.target.value;
-			if (examPresets[board] && examPresets[board].durationMin) {
-				const totalMins = examPresets[board].durationMin;
-				durationHoursInput.value = Math.floor(totalMins / 60);
-				durationMinutesInput.value = totalMins % 60;
-			}
-		});
+		// Auto-fill durations and extra time based on exam selection
+        examBoardSelect.addEventListener('change', (e) => {
+            const board = e.target.value;
+            let totalMins = 0;
+
+            // 1. Handle Extra Time Defaults
+            if (board.startsWith('maths-')) {
+                if (extraTimeValueInput) extraTimeValueInput.value = '0';
+            } else {
+                if (extraTimeValueInput) extraTimeValueInput.value = '25';
+                if (extraTimeTypeInput) extraTimeTypeInput.value = 'percentage';
+            }
+
+            // 2. Handle Duration Defaults
+            if (examPresets[board] && examPresets[board].durationMin) {
+                // Maths Olympiads (pulls from your preset database)
+                totalMins = examPresets[board].durationMin;
+            } else if (board === 'Custom') {
+                // Custom default
+                totalMins = 45;
+            } else if (board === 'IB' || board === 'IGCSE') {
+                // IB and IGCSE default
+                totalMins = 90;
+            }
+
+            // Apply the calculated duration to the input boxes
+            if (totalMins > 0) {
+                durationHoursInput.value = Math.floor(totalMins / 60);
+                durationMinutesInput.value = totalMins % 60;
+            }
+        });
 
         // Load button
         document.getElementById('btn-load').addEventListener('click', () => {
