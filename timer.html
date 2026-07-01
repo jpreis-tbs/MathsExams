@@ -730,22 +730,21 @@
         <div class="setup-card">
             <h1>Exam Timer</h1>
             <div class="form-group">
-                <label for="exam-board">Exam Board</label>
-                <select id="exam-board">
-                    <option value="IB">IB</option>
-                    <option value="IGCSE">IGCSE</option>
-<optgroup label="Maths">
-                    <option value="maths-kangaroo">Maths Kangaroo (1h40m)</option>
-                    <option value="maths-obmep">Maths OBMEP (2h30m)</option>
-                    <option value="maths-jacob-palis">Maths Jacob Palis Jr (2h30m)</option>
-                </optgroup>
-
-                    <option value="Custom">Custom</option> 
-                </select>
+                <label for="exam-board">Board</label>
+                    <select id="exam-board">
+                        <option value="Custom">Custom</option>
+                        <optgroup label="Maths Olympiads">
+                            <option value="maths-kangaroo">Maths Kangaroo (1h40m)</option>
+                            <option value="maths-obmep">Maths OBMEP (2h30m)</option>
+                            <option value="maths-jacob-palis">Maths Jacob Palis Jr (2h30m)</option>
+                        </optgroup>
+                        <option value="IB">IB</option>
+                        <option value="IGCSE">IGCSE</option>
+                    </select>
             </div>
             <div class="form-group">
                 <label for="exam-name">Exam Name</label>
-                <input type="text" id="exam-name" placeholder="e.g. English B Paper 1 HL">
+                <input type="text" id="exam-name" placeholder="e.g. AAHL non calc test">
             </div>
             <div class="form-group">
                 <label>Duration</label>
@@ -951,7 +950,7 @@ const startTimeInput = document.getElementById('start-time');
             durationMinutesInput.value = '30';
             const now = new Date();
             startTimeInput.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-            examBoardSelect.value = 'IB';
+            examBoardSelect.value = 'Custom';
 
             if (extraTimeValueInput) extraTimeValueInput.value = '';
             if (customWarningTimesInput) customWarningTimesInput.value = '';
