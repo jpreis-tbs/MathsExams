@@ -344,6 +344,15 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
+		.next-announcement {
+            font-size: 1.2rem; /* Roughly 1/3 of the main clock font */
+            text-align: center;
+            font-weight: 500;
+            opacity: 0.85; /* Slight transparency so it doesn't overpower the clock */
+            margin-top: -5px; 
+            margin-bottom: 12px;
+        }
+
         .exam-card.ib .countdown-time {
             color: #1a56db;
         }
@@ -946,14 +955,12 @@ const startTimeInput = document.getElementById('start-time');
         // Show setup form
         function showSetup() {
             examNameInput.value = '';
-            // Set default duration for Custom (0 hours, 45 minutes)
             durationHoursInput.value = '0';
             durationMinutesInput.value = '45';
             const now = new Date();
             startTimeInput.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
             examBoardSelect.value = 'Custom';
 
-            // Set default Extra Time to 25% for Custom
             if (extraTimeTypeInput) extraTimeTypeInput.value = 'percentage';
             if (extraTimeValueInput) extraTimeValueInput.value = '25';
             if (customWarningTimesInput) customWarningTimesInput.value = '';
@@ -1056,6 +1063,7 @@ const startTimeInput = document.getElementById('start-time');
             countdownSection.className = 'countdown-section';
             countdownSection.innerHTML = `
                 <div class="countdown-status"></div>
+                <div class="next-announcement">Next announcement: ---</div>
                 <div class="countdown-time">--:--</div>
             `;
             card.appendChild(countdownSection);
@@ -1193,6 +1201,17 @@ const startTimeInput = document.getElementById('start-time');
 
                 const statusEl = timer.el.querySelector('.countdown-status');
                 const countdownEl = timer.el.querySelector('.countdown-time');
+                const nextAnnEl = timer.el.querySelector('.next-announcement');
+
+                // Update the next announcement time
+                if (nextAnnEl) {
+                    const nextMilestone = timer.times.find(t => currentMin < t.time);
+                    if (nextMilestone) {
+                        nextAnnEl.textContent = `Next announcement: ${minutesToTimeStr(nextMilestone.time)}`;
+                    } else {
+                        nextAnnEl.textContent = `Next announcement: ---`;
+                    }
+                }
 
                 const endTime = timer.times.find(t => t.key === 'end');
                 const startTime = timer.times.find(t => t.key === 'start');
