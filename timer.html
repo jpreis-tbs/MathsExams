@@ -228,6 +228,10 @@
             border-color: #dc2626;
         }
 
+        .exam-card.maths {
+            border-color: #FFDA03;
+        }
+
         .card-remove {
             position: absolute;
             top: 10px;
@@ -267,6 +271,10 @@
 
         .exam-card.igcse .exam-board-label {
             color: #dc2626;
+        }
+
+        .exam-card.maths .exam-board-label {
+            color: #FFDA03;
         }
 
         .exam-duration-label {
@@ -322,6 +330,16 @@
             color: #fff;
         }
 
+        .time-row.highlighted-maths {
+            background: #FFDA03;
+            color: #000;
+        }
+
+        .start-edit-row.highlighted-maths {
+            background: #FFDA03;
+            color: #000;
+        }
+
         .countdown-section {
             margin-top: 10px;
             text-align: center;
@@ -353,12 +371,23 @@
             margin-bottom: 12px;
         }
 
-        .exam-card.ib .countdown-time {
-            color: #1a56db;
+        .exam-card.maths .countdown-time {
+            color: #FFDA03;
         }
 
-        .exam-card.igcse .countdown-time {
-            color: #dc2626;
+        .exam-card.ib .countdown-time.highlighted-ib {
+            background: #1a56db;
+            color: #fff;
+        }
+
+        .exam-card.igcse .countdown-time.highlighted-igcse {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .exam-card.maths .countdown-time.highlighted-maths {
+            background: #FFDA03;
+            color: #000;
         }
 
         .exam-card.ib .countdown-time.highlighted-ib {
@@ -574,6 +603,14 @@
     .exam-card.igcse .time-row.active-extra-warning {
         background-color: #dc2626 !important;
         color: #fff !important;
+        border-radius: 6px;
+    }
+
+    .exam-card.maths .time-row.active-warning-invert,
+    .exam-card.maths .start-edit-row.active-warning-invert,
+    .exam-card.maths .time-row.active-extra-warning {
+        background-color: #FFDA03 !important;
+        color: #000 !important;
         border-radius: 6px;
     }
     
