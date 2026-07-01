@@ -801,14 +801,12 @@
 
     <!-- Timer view -->
     <div id="timer-view">
-        <div class="timer-header">
-            <div class="current-time-label">Current Time</div>
-            <div class="current-time" id="current-time">--:--:--</div>
-<div id="next-announcement" style="display: none;"></div>
-        </div>
-
-        <div class="cards-grid" id="cards-grid">
-            <!-- Exam cards and add-card injected by JS -->
+            <div class="timer-header">
+                <div class="current-time-label">Current time</div>
+                <div class="current-time" id="current-time">--:--:--</div>
+                <div id="next-announcement">Next announcement: ---</div>
+            </div>
+            <div class="cards-grid" id="cards-grid"></div>
         </div>
 
         <div class="bottom-controls">
@@ -1063,7 +1061,6 @@ const startTimeInput = document.getElementById('start-time');
             countdownSection.className = 'countdown-section';
             countdownSection.innerHTML = `
                 <div class="countdown-status"></div>
-                <div class="next-announcement">Next announcement: ---</div>
                 <div class="countdown-time">--:--</div>
             `;
             card.appendChild(countdownSection);
@@ -1184,6 +1181,26 @@ const startTimeInput = document.getElementById('start-time');
             const currentMin = nowMinutes();
             const currentSec = nowSeconds();
 
+            // Calculate global next announcement across all timers
+            let nextGlobalMilestoneTime = null;
+            timers.forEach(timer => {
+                const nextMilestone = timer.times.find(t => currentMin < t.time);
+                if (nextMilestone) {
+                    if (nextGlobalMilestoneTime === null || nextMilestone.time < nextGlobalMilestoneTime) {
+                        nextGlobalMilestoneTime = nextMilestone.time;
+                    }
+                }
+            });
+
+            const globalNextAnnEl = document.getElementById('next-announcement');
+            if (globalNextAnnEl) {
+                if (nextGlobalMilestoneTime !== null) {
+                    globalNextAnnEl.textContent = `Next announcement: ${minutesToTimeStr(nextGlobalMilestoneTime)}`;
+                } else {
+                    globalNextAnnEl.textContent = `Next announcement: ---`;
+                }
+            }
+
             timers.forEach(timer => {
                 let highlightClass = 'highlighted-igcse'; 
                 if (timer.board === 'IB') highlightClass = 'highlighted-ib';
@@ -1201,17 +1218,6 @@ const startTimeInput = document.getElementById('start-time');
 
                 const statusEl = timer.el.querySelector('.countdown-status');
                 const countdownEl = timer.el.querySelector('.countdown-time');
-                const nextAnnEl = timer.el.querySelector('.next-announcement');
-
-                // Update the next announcement time
-                if (nextAnnEl) {
-                    const nextMilestone = timer.times.find(t => currentMin < t.time);
-                    if (nextMilestone) {
-                        nextAnnEl.textContent = `Next announcement: ${minutesToTimeStr(nextMilestone.time)}`;
-                    } else {
-                        nextAnnEl.textContent = `Next announcement: ---`;
-                    }
-                }
 
                 const endTime = timer.times.find(t => t.key === 'end');
                 const startTime = timer.times.find(t => t.key === 'start');
