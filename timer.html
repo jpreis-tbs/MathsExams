@@ -232,6 +232,10 @@
             border-color: #FFDA03;
         }
 
+		.exam-card.custom {
+			border-color: #000000;
+		}
+
         .card-remove {
             position: absolute;
             top: 10px;
@@ -275,6 +279,10 @@
 
         .exam-card.maths .exam-board-label {
             color: #FFDA03;
+        }
+		
+		.exam-card.custom .exam-board-label {
+            color: #000000;
         }
 
         .exam-duration-label {
@@ -339,6 +347,12 @@
             background: #FFDA03;
             color: #000;
         }
+		
+		.time-row.highlighted-custom,
+        .start-edit-row.highlighted-custom {
+            background: #000000;
+            color: #ffffff;
+        }
 
         .countdown-section {
             margin-top: 10px;
@@ -398,6 +412,15 @@
         .exam-card.igcse .countdown-time.highlighted-igcse {
             background: #dc2626;
             color: #fff;
+        }
+		
+		.exam-card.custom .countdown-time.highlighted-custom {
+            background: #000000;
+            color: #ffffff;
+        }
+		
+		.exam-card.custom .countdown-time {
+            color: #000000;
         }
 
         /* Editable start time */
@@ -613,6 +636,15 @@
         color: #000 !important;
         border-radius: 6px;
     }
+	
+	/* Override for active warnings (if applicable) */
+	.exam-card.custom .time-row.active-warning-invert,
+	.exam-card.custom .start-edit-row.active-warning-invert,
+	.exam-card.custom .time-row.active-extra-warning {
+		background-color: #000000 !important;
+		color: #ffffff !important;
+		border-radius: 6px;
+	}
     
     /* Ensure subordinate extra time remains legible during inversion */
     .active-warning-invert .extra-time-val,
@@ -1008,12 +1040,14 @@ const startTimeInput = document.getElementById('start-time');
         function buildCard(timer) {
             const card = document.createElement('div');
             
-            // FIX: Apply proper CSS classes for IB, IGCSE, and Maths
+            // FIX: Apply proper CSS classes for IB, IGCSE, Maths, and Custom
             let boardClass = 'igcse'; // default
             if (timer.board === 'IB') {
                 boardClass = 'ib';
             } else if (timer.board.toLowerCase().startsWith('maths')) {
                 boardClass = 'maths';
+            } else if (timer.board === 'Custom') {
+                boardClass = 'custom';
             }
             
             card.className = `exam-card ${boardClass}`;
@@ -1241,7 +1275,8 @@ const startTimeInput = document.getElementById('start-time');
             timers.forEach(timer => {
                 let highlightClass = 'highlighted-igcse'; 
                 if (timer.board === 'IB') highlightClass = 'highlighted-ib';
-                if (timer.board.toLowerCase().startsWith('maths')) highlightClass = 'highlighted-maths'; // If you added this CSS
+                if (timer.board.toLowerCase().startsWith('maths')) highlightClass = 'highlighted-maths';
+                if (timer.board === 'Custom') highlightClass = 'highlighted-custom';
 
                 const rowsContainer = timer.el.querySelector('.time-rows');
                 const rows = rowsContainer.children;
