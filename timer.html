@@ -374,12 +374,21 @@
             inset: 0;
             z-index: 10;
             display: none; /* Hidden until timer hits 0, switched to flex in JS */
-            clip-path: polygon(0% 80%, 20% 100%, 100% 20%, 80% 0%);
+            
+            /* Calculates vertices based on the smaller card dimension to preserve a perfect rectangle */
+            clip-path: polygon(
+                5cqmin calc(100% - 20cqmin),  /* Vertex 1: Bottom-Left (Top edge of banner) */
+                20cqmin calc(100% - 5cqmin),  /* Vertex 2: Bottom-Left (Bottom edge of banner) */
+                calc(100% - 5cqmin) 20cqmin,  /* Vertex 3: Top-Right (Bottom edge of banner) */
+                calc(100% - 20cqmin) 5cqmin   /* Vertex 4: Top-Right (Top edge of banner) */
+            );
+            
             align-items: center;
             justify-content: center;
             pointer-events: none;
             color: #fff;
-            container-type: size; /* Moved here so it doesn't collapse the card */
+            background: #dc2626; /* Ensure you have a background color so the shape is visible! */
+            container-type: size; 
         }
 
         .exam-finished-text {
