@@ -403,7 +403,7 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            /* Insets the frame by exactly 12px total (6px padding on all sides) relative to the math bounds */
+            /* Insets the frame by exactly 12px total (6px on all sides) relative to geometric bounds */
             width: calc(var(--banner-length) - 12px);
             height: calc(var(--banner-thickness) - 12px);
             
@@ -421,7 +421,7 @@
             /* Uses the exact mathematical angle of the banner to ensure perfect alignment */
             transform: rotate(var(--banner-angle, 0rad));
             
-            /* Dynamically sizes the font based on the perpendicular side (thickness) of the banner */
+            /* Dynamically sizes the font based on the vertical thickness of the banner */
             font-size: calc(var(--banner-thickness) * 0.45); 
             
             font-weight: 900;
@@ -429,8 +429,7 @@
             letter-spacing: 0.05em;
             white-space: nowrap;
             text-align: center;
-            /* Softened shadow to fit the tighter text layout cleanly */
-            text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3); 
+            text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
         }
 
         .exam-card.ib .exam-finished-banner { background-color: #1a56db; }
@@ -450,6 +449,14 @@
             gap: 2px;
         }
 
+        /* --- Regular Time Badge Layout --- */
+        .end-label-wrapper {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
+
         .badge-regular {
             display: inline-block;
             background-color: #888;
@@ -458,11 +465,11 @@
             border-radius: 4px;
             /* Dynamically scales down font size if the card gets too narrow */
             font-size: min(0.75rem, 3.5cqi); 
-            margin-left: 0; /* Reset margin to perfectly align left with END */
+            margin-left: 0; /* Align left edge cleanly with END */
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            white-space: nowrap; /* Physically forces the text to stay on one line */
+            white-space: nowrap; /* Forces text to stay safely on a single line */
         }
 
         .countdown-status {
@@ -494,7 +501,7 @@
             margin-bottom: 12px;
         }
 
-        /* --- Base Countdown Colors (Sets up the perfect swap) --- */
+        /* --- Base Countdown Colors (Establishes idle theme colors) --- */
         .exam-card.ib .countdown-time {
             color: #1a56db;
         }
@@ -511,7 +518,7 @@
             color: #000000;
         }
 
-        /* --- Active Announcement Highlight (Swaps Background and Font Color) --- */
+        /* --- Active Announcement Highlight (Performs a complete color inversion swap) --- */
         .exam-card.ib .countdown-time.highlighted-ib {
             background: #1a56db;
             color: #fff;
@@ -1066,13 +1073,14 @@
                 const Dy = W - By;
 
                 // --- Calculate dimensions and EXACT angle for the decorative frame ---
+                // --- Calculate dimensions and EXACT angle for the decorative frame ---
                 const rectThickness = Math.hypot(Bx - Ax, By - Ay);
                 const rectLength = Math.hypot(Dx - Ax, Dy - Ay);
                 card.style.setProperty('--banner-thickness', `${rectThickness}px`);
                 card.style.setProperty('--banner-length', `${rectLength}px`);
 
                 // Calculate the exact angle of the banner's long edge (A to D)
-                // CSS Y-axis is inverted (goes down), so we use (Ay - Dy) for the Y difference
+                // CSS Y-axis goes down, so we use (Ay - Dy) for the vertical difference
                 const angleRad = Math.atan2(Ay - Dy, Dx - Ax);
                 card.style.setProperty('--banner-angle', `${angleRad}rad`);
 
