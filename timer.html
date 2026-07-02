@@ -375,13 +375,8 @@
             z-index: 10;
             display: none; /* Hidden until timer hits 0, switched to flex in JS */
             
-            /* Calculates vertices based on the smaller card dimension to preserve a perfect rectangle */
-            clip-path: polygon(
-                5cqmin calc(100% - 20cqmin),  /* Vertex 1: Bottom-Left (Top edge of banner) */
-                20cqmin calc(100% - 5cqmin),  /* Vertex 2: Bottom-Left (Bottom edge of banner) */
-                calc(100% - 5cqmin) 20cqmin,  /* Vertex 3: Top-Right (Bottom edge of banner) */
-                calc(100% - 20cqmin) 5cqmin   /* Vertex 4: Top-Right (Top edge of banner) */
-            );
+            /* Uses the exact mathematical polygon calculated by JS, with a fallback */
+            clip-path: var(--banner-clip, polygon(0% 80%, 20% 100%, 100% 20%, 80% 0%));
             
             align-items: center;
             justify-content: center;
@@ -974,6 +969,59 @@
         const cardsGrid = document.getElementById('cards-grid');
         const btnCancel = document.getElementById('btn-cancel');
 
+        // --- Banner Geometry Observer ---
+        const bannerObserver = new ResizeObserver((entries) => {
+            for (let entry of entries) {
+                const card = entry.target;
+                
+                const W = card.offsetWidth;
+                const L = card.offsetHeight;
+                const a = Math.min(W, L);
+                
+                // Prevent calculations if the card is hidden or collapsed
+                if (W === 0 && L === 0) continue;
+                
+                let h, v;
+                if (W >= L) {
+                    h = 0.05 * a;
+                    v = 0.20 * a;
+                } else {
+                    h = 0.20 * a;
+                    v = 0.05 * a;
+                }
+
+                const W2 = W * W;
+                const L2 = L * L;
+                const den = W2 + L2;
+
+                // Point A 
+                const Ax = h;
+                const Ay = v;
+
+                // Point B (Calculated to guarantee a 90-degree corner)
+                const Bx = (2 * v * W * L + W2 * h - L2 * h) / den;
+                const By = (2 * W * L * h + v * L2 - v * W2) / den;
+
+                // Point C 
+                const Cx = W - h;
+                const Cy = L - v;
+
+                // Point D (Calculated via diagonal bisection)
+                const Dx = W - Bx;
+                const Dy = L - By;
+
+                // Map to CSS coordinates (Inverting Y: L - y) to match Top-Left CSS origin
+                const polygon = `polygon(
+                    ${Ax}px ${L - Ay}px, 
+                    ${Bx}px ${L - By}px, 
+                    ${Cx}px ${L - Cy}px, 
+                    ${Dx}px ${L - Dy}px
+                )`;
+                
+                card.style.setProperty('--banner-clip', polygon);
+            }
+        });
+
         // Central Data Presets for specific exams
         const examPresets = {
             "maths-kangaroo": { durationMin: 100, extraTimeSec: 0, customWarnings: [20, 5] },
@@ -1111,6 +1159,9 @@
         // Build a card DOM element for a timer
         function buildCard(timer) {
             const card = document.createElement('div');
+            
+            // Attach the exact geometry observer to this card
+            bannerObserver.observe(card);
             
             // Map the internal ID to a clean display name
             const boardLabelMap = {
