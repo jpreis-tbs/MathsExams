@@ -207,7 +207,6 @@
             cursor: grab;
             user-select: none;
             transition: box-shadow 0.2s, opacity 0.2s;
-            container-type: size;
             overflow: hidden;
         }
 
@@ -379,6 +378,7 @@
             justify-content: center;
             pointer-events: none;
             color: #fff;
+            container-type: size; /* Moved here so it doesn't collapse the card */
         }
 
         .exam-finished-text {
