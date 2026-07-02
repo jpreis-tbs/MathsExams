@@ -373,13 +373,13 @@
             left: 50%;
             transform: translate(-50%, -50%) rotate(-10deg);
             color: #fff;
-            padding: 8px 24px;
-            font-size: 1.5rem;
-            font-weight: bold;
+            padding: 16px 40px;
+            font-size: 3.5rem;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            border: 2px solid #fff;
+            letter-spacing: 3px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            border: 4px solid #fff;
             z-index: 10;
             display: none; /* Hidden until timer hits 0 */
             white-space: nowrap;
@@ -1043,7 +1043,7 @@
                 times.push({ key: '5min', label: '5 MIN', time: endMin - 5 });
             }
 
-            times.push({ key: 'end', label: 'End <span class="badge-regular">Regular time</span>', time: endMin });
+            times.push({ key: 'end', label: 'End <span class="badge-regular" style="display: none;">Regular time finished</span>', time: endMin });
 
             // Handle extra time (Default is 25%, override if custom extraTimeSec is set)
             let extraMin = Math.round(durationMin * 0.25); 
@@ -1197,7 +1197,7 @@
             const countdownSection = document.createElement('div');
             countdownSection.className = 'countdown-section';
             countdownSection.innerHTML = `
-                <div class="exam-finished-banner" id="banner-${timer.id}">Exam has finished</div>
+                <div class="exam-finished-banner" id="banner-${timer.id}">EXAM HAS FINISHED</div>
                 <div class="countdown-status"></div>
                 <div class="countdown-time">--:--</div>
             `;
@@ -1368,6 +1368,15 @@
                 const startSec = startTime.time * 60;
                 const readingSec = readingTime ? readingTime.time * 60 : null;
                 const finalSec = extraTime ? extraTime.time * 60 : endSec;
+
+                // Handle the "Regular time finished" badge visibility
+                const endRow = timer.el.querySelector('.time-row[data-key="end"]');
+                if (endRow) {
+                    const badge = endRow.querySelector('.badge-regular');
+                    if (badge) {
+                        badge.style.display = currentSec >= endSec ? 'inline-block' : 'none';
+                    }
+                }
 
                 timer.times.forEach((t, i) => {
                     if (rows[i]) rows[i].classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths');
