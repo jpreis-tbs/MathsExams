@@ -353,6 +353,13 @@
             color: var(--card-base-bg) !important;
         }
 
+        /* Maths Exception: Warning row highlight keeps font black */
+        .exam-card.maths .time-row.highlighted-maths,
+        .exam-card.maths .start-edit-row.highlighted-maths {
+            background-color: var(--board-theme-color) !important;
+            color: #000000 !important;
+        }
+
         .countdown-section {
             margin-top: auto;
             text-align: center;
@@ -490,6 +497,12 @@
             background-color: transparent;
         }
 
+        /* Maths Exception: Default Timer has Yellow Background, Black Font */
+        .exam-card.maths .countdown-time {
+            background-color: var(--board-theme-color);
+            color: #000000;
+        }
+
         /* --- Active Announcement Highlight (Performs a strict 1-to-1 color swap) --- */
         .exam-card .countdown-time[class*="highlighted-"] {
             /* The background perfectly matches the former font color */
@@ -497,6 +510,12 @@
             
             /* The font perfectly matches the former card background color (white) */
             color: var(--card-base-bg) !important;
+        }
+
+        /* Maths Exception: Announcement Timer Swaps to Black Background, Yellow Font */
+        .exam-card.maths .countdown-time.highlighted-maths {
+            background-color: #000000 !important;
+            color: var(--board-theme-color) !important;
         }
 
         /* Editable start time */
@@ -1618,11 +1637,10 @@
                 customWarnings = examPresets[board].customWarnings;
             }
 
-            // 3. Extra Time Preset Collision Logic
-            let extraTimeSec = null;
-            if (examPresets[board]) {
-                extraTimeSec = examPresets[board].extraTimeSec;
-            } else if (extraTimeTypeInput && extraTimeValueInput) {
+            // 3. Extra Time Calculation
+            // Always read from the UI so the user has full control over extra time!
+            let extraTimeSec = 0; // Default to 0
+            if (extraTimeTypeInput && extraTimeValueInput) {
                 const extraTimeType = extraTimeTypeInput.value;
                 const extraTimeValue = parseFloat(extraTimeValueInput.value) || 0;
 
@@ -1630,6 +1648,8 @@
                     extraTimeSec = (durationMin * 60) * (extraTimeValue / 100);
                 } else if (extraTimeType === 'absolute') {
                     extraTimeSec = extraTimeValue * 60;
+                } else if (extraTimeType === 'none') {
+                    extraTimeSec = 0;
                 }
             }
 
@@ -1648,10 +1668,11 @@
 
             // 1. Handle Extra Time Defaults
             if (board.startsWith('maths-')) {
+                if (extraTimeTypeInput) extraTimeTypeInput.value = 'none';
                 if (extraTimeValueInput) extraTimeValueInput.value = '0';
             } else {
-                if (extraTimeValueInput) extraTimeValueInput.value = '25';
                 if (extraTimeTypeInput) extraTimeTypeInput.value = 'percentage';
+                if (extraTimeValueInput) extraTimeValueInput.value = '25';
             }
 
             // 2. Handle Duration Defaults
