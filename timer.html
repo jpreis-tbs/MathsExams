@@ -359,8 +359,54 @@
         }
 
         .countdown-section {
-            margin-top: 10px;
+            margin-top: auto;
             text-align: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            position: relative; /* Required for the banner overlay */
+        }
+
+        /* --- Exam Finished Banner --- */
+        .exam-finished-banner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-10deg);
+            color: #fff;
+            padding: 8px 24px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: 2px solid #fff;
+            z-index: 10;
+            display: none; /* Hidden until timer hits 0 */
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .exam-card.ib .exam-finished-banner { background-color: #1a56db; }
+        .exam-card.igcse .exam-finished-banner { background-color: #dc2626; }
+        .exam-card.custom .exam-finished-banner { background-color: #000; }
+        .exam-card.maths .exam-finished-banner { 
+            background-color: #FFDA03; 
+            color: #000; 
+            border-color: #000; 
+        }
+
+        /* --- Regular Time Badge --- */
+        .badge-regular {
+            display: inline-block;
+            background-color: #888;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .countdown-status {
@@ -1008,7 +1054,7 @@ const startTimeInput = document.getElementById('start-time');
                 times.push({ key: '5min', label: '5 MIN', time: endMin - 5 });
             }
 
-            times.push({ key: 'end', label: 'END', time: endMin });
+            times.push({ key: 'end', label: 'End <span class="badge-regular">Regular time</span>', time: endMin });
 
             // Handle extra time (Default is 25%, override if custom extraTimeSec is set)
             let extraMin = Math.round(durationMin * 0.25); 
@@ -1162,6 +1208,7 @@ const startTimeInput = document.getElementById('start-time');
             const countdownSection = document.createElement('div');
             countdownSection.className = 'countdown-section';
             countdownSection.innerHTML = `
+                <div class="exam-finished-banner" id="banner-${timer.id}">Exam has finished</div>
                 <div class="countdown-status"></div>
                 <div class="countdown-time">--:--</div>
             `;
@@ -1321,6 +1368,7 @@ const startTimeInput = document.getElementById('start-time');
 
                 const statusEl = timer.el.querySelector('.countdown-status');
                 const countdownEl = timer.el.querySelector('.countdown-time');
+				const bannerEl = timer.el.querySelector('.exam-finished-banner');
 
                 const endTime = timer.times.find(t => t.key === 'end');
                 const startTime = timer.times.find(t => t.key === 'start');
@@ -1347,7 +1395,12 @@ const startTimeInput = document.getElementById('start-time');
 
                 if (currentSec >= finalSec) {
                     statusEl.textContent = 'EXAM ENDED';
-                    countdownEl.textContent = '00:00';
+                    countdownEl.textContent = '00:00:00';
+                    countdownEl.classList.remove('warning', 'danger');
+                    statusEl.textContent = 'Exam Finished';
+                    if (bannerEl) bannerEl.style.display = 'block'; // SHOW BANNER
+                } else {
+                    if (bannerEl) bannerEl.style.display = 'none';  // HIDE BANNER
                 } else if (currentSec >= endSec) {
                     statusEl.textContent = 'Extra Time';
                     const rem = finalSec - currentSec;
@@ -1426,12 +1479,20 @@ const startTimeInput = document.getElementById('start-time');
             if (customBoardNameInput) customBoardName = customBoardNameInput.value || null;
 
             // FIX: Convert comma string to an array for custom warnings
+            // 1. Check if the user typed any custom warnings manually
             let customWarnings = [];
             if (customWarningTimesInput && customWarningTimesInput.value.trim() !== '') {
                 customWarnings = customWarningTimesInput.value.split(',')
-                    .map(str => parseInt(str.trim(), 10))
-                    .filter(num => !isNaN(num));
+                    .map(s => parseInt(s.trim()))
+                    .filter(n => !isNaN(n));
+            } 
+            // 2. If left blank, check if this specific exam board has preset warnings!
+            else if (examPresets[boardVal] && examPresets[boardVal].customWarnings) {
+                customWarnings = examPresets[boardVal].customWarnings;
             }
+
+            // Generate the timeline
+            const times = computeTimes(boardVal, startMin, durationMin, customWarnings, extraTimeSec);
 
             // FIX: Extra Time Preset Collision Logic
             let extraTimeSec = null;
