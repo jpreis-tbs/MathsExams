@@ -403,30 +403,34 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            /* Uses exact geometric dimensions from JS, minus an inset margin (3cqmin scales nicely) */
-            width: calc(var(--banner-length) - 3cqmin);
-            height: calc(var(--banner-thickness) - 3cqmin);
+            /* Insets the frame by exactly 12px total (6px padding on all sides) relative to the math bounds */
+            width: calc(var(--banner-length) - 12px);
+            height: calc(var(--banner-thickness) - 12px);
             
             /* Translates perfectly to center, then rotates using the EXACT mathematical angle from JS */
-            transform: translate(-50%, -50%) rotate(var(--banner-angle, atan2(-100cqh, 100cqw)));
+            transform: translate(-50%, -50%) rotate(var(--banner-angle, 0rad));
             
             /* currentColor dynamically maps to whatever color the banner text is */
-            border: max(1.5px, 0.4cqmin) solid currentColor; 
+            border: 2px solid currentColor; 
             border-radius: 4px; /* Slight rounding on the frame corners */
             pointer-events: none;
             box-sizing: border-box;
         }
 
         .exam-finished-text {
-            /* Now uses the exact mathematical angle of the banner to ensure perfect alignment */
-            transform: rotate(var(--banner-angle, atan2(-100cqh, 100cqw)));
-            font-size: 8cqw; 
+            /* Uses the exact mathematical angle of the banner to ensure perfect alignment */
+            transform: rotate(var(--banner-angle, 0rad));
+            
+            /* Dynamically sizes the font based on the perpendicular side (thickness) of the banner */
+            font-size: calc(var(--banner-thickness) * 0.45); 
+            
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             white-space: nowrap;
             text-align: center;
-            text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.4);
+            /* Softened shadow to fit the tighter text layout cleanly */
+            text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3); 
         }
 
         .exam-card.ib .exam-finished-banner { background-color: #1a56db; }
@@ -439,17 +443,26 @@
         }
 
         /* --- Regular Time Badge --- */
+        .end-label-wrapper {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
+
         .badge-regular {
             display: inline-block;
             background-color: #888;
             color: white;
             padding: 2px 6px;
             border-radius: 4px;
-            font-size: 0.75rem;
-            margin-left: 8px;
+            /* Dynamically scales down font size if the card gets too narrow */
+            font-size: min(0.75rem, 3.5cqi); 
+            margin-left: 0; /* Reset margin to perfectly align left with END */
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            white-space: nowrap; /* Physically forces the text to stay on one line */
         }
 
         .countdown-status {
@@ -481,10 +494,24 @@
             margin-bottom: 12px;
         }
 
+        /* --- Base Countdown Colors (Sets up the perfect swap) --- */
+        .exam-card.ib .countdown-time {
+            color: #1a56db;
+        }
+
+        .exam-card.igcse .countdown-time {
+            color: #dc2626;
+        }
+
         .exam-card.maths .countdown-time {
             color: #FFDA03;
         }
 
+        .exam-card.custom .countdown-time {
+            color: #000000;
+        }
+
+        /* --- Active Announcement Highlight (Swaps Background and Font Color) --- */
         .exam-card.ib .countdown-time.highlighted-ib {
             background: #1a56db;
             color: #fff;
@@ -500,13 +527,9 @@
             color: #000;
         }
 		
-		.exam-card.custom .countdown-time.highlighted-custom {
+        .exam-card.custom .countdown-time.highlighted-custom {
             background: #000000;
             color: #ffffff;
-        }
-		
-		.exam-card.custom .countdown-time {
-            color: #000000;
         }
 
         /* Editable start time */
@@ -1158,7 +1181,7 @@
                 times.push({ key: '5min', label: '5 MIN', time: endMin - 5 });
             }
 
-            times.push({ key: 'end', label: 'End <span class="badge-regular" style="display: none;">Regular time finished</span>', time: endMin });
+            times.push({ key: 'end', label: '<span class="end-label-wrapper"><span>End</span><span class="badge-regular" style="display: none;">Regular time finished</span></span>', time: endMin });
 
             // Handle extra time (Default is 25%, override if custom extraTimeSec is set)
             let extraMin = Math.round(durationMin * 0.25); 
