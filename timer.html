@@ -499,8 +499,8 @@
 
         /* Maths Exception: Default Timer has Yellow Background, Black Font */
         .exam-card.maths .countdown-time {
-            background-color: var(--board-theme-color);
-            color: #000000;
+            background-color: #FFDA03 !important;
+            color: #000000 !important;
         }
 
         /* --- Active Announcement Highlight (Performs a strict 1-to-1 color swap) --- */
@@ -515,7 +515,7 @@
         /* Maths Exception: Announcement Timer Swaps to Black Background, Yellow Font */
         .exam-card.maths .countdown-time.highlighted-maths {
             background-color: #000000 !important;
-            color: var(--board-theme-color) !important;
+            color: #FFDA03 !important;
         }
 
         /* Editable start time */
@@ -906,11 +906,6 @@
                 <label for="exam-board">Board</label>
                     <select id="exam-board">
                         <option value="Custom">Custom</option>
-                        <optgroup label="Maths Olympiads">
-                            <option value="maths-kangaroo">Maths Kangaroo (1h40m)</option>
-                            <option value="maths-obmep">Maths OBMEP (2h30m)</option>
-                            <option value="maths-jacob-palis">Maths Jacob Palis Jr (2h30m)</option>
-                        </optgroup>
                         <optgroup label="IB">
                             <option value="ib-higher-p1">Higher Paper 1 (2h)</option>
                             <option value="ib-higher-p2">Higher Paper 2 (2h)</option>
@@ -924,6 +919,11 @@
                             <option value="igcse-p4">Paper 4 (1h30m)</option>
                             <option value="igcse-p6">Paper 6 (1h30m)</option>
                             <option value="IGCSE">Custom IGCSE</option>
+                        </optgroup>
+                        <optgroup label="Maths Olympiads">
+                            <option value="maths-kangaroo">Maths Kangaroo (1h40m)</option>
+                            <option value="maths-obmep">Maths OBMEP (2h30m)</option>
+                            <option value="maths-jacob-palis">Maths Jacob Palis Jr (2h30m)</option>
                         </optgroup>
                     </select>
             </div>
