@@ -180,11 +180,15 @@
             font-variant-numeric: tabular-nums;
             letter-spacing: 2px;
         }
-#next-announcement {
-            font-size: 2rem; /* 50% of the 4rem main clock */
-            color: #888;
-            font-style: italic;
-            margin-top: 8px;
+		#next-announcement {
+            font-size: 1.1rem;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            font-weight: 500;
+            margin-top: -5px; 
+            margin-bottom: 15px;
         }
 
         /* Card grid */
@@ -909,24 +913,23 @@
         const btnCancel = document.getElementById('btn-cancel');
 
         // Central Data Presets for specific exams
-const examPresets = {
-    "maths-kangaroo": {
-        durationMin: 100,      // 1 hour 40 minutes
-        extraTimeSec: 0,       // 0 extra time
-        customWarnings: [20]   // 20-minute warning
-    },
-    "maths-obmep": {
-        durationMin: 150,      // 2 hours 30 minutes
-        extraTimeSec: 0,
-        customWarnings: [15]   // 15-minute warning
-    },
-    "maths-jacob-palis": {
-        durationMin: 150,      // 2 hours 30 minutes
-        extraTimeSec: 0,
-        customWarnings: [15]   // 15-minute warning
-    }
-};
-
+        const examPresets = {
+            "maths-kangaroo": {
+                durationMin: 100,      
+                extraTimeSec: 0,       
+                customWarnings: [20, 5]   // 20-min AND 5-min warning
+            },
+            "maths-obmep": {
+                durationMin: 150,      
+                extraTimeSec: 0,
+                customWarnings: [20, 5]   // 20-min AND 5-min warning
+            },
+            "maths-jacob-palis": {
+                durationMin: 150,      
+                extraTimeSec: 0,
+                customWarnings: [15, 5]   // 15-min AND 5-min warning
+            }
+        };
 
 
         // Form refs
