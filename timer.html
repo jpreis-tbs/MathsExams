@@ -820,8 +820,20 @@
                             <option value="maths-obmep">Maths OBMEP (2h30m)</option>
                             <option value="maths-jacob-palis">Maths Jacob Palis Jr (2h30m)</option>
                         </optgroup>
-                        <option value="IB">IB</option>
-                        <option value="IGCSE">IGCSE</option>
+                        <optgroup label="IB">
+                            <option value="ib-higher-p1">Higher Paper 1 (2h)</option>
+                            <option value="ib-higher-p2">Higher Paper 2 (2h)</option>
+                            <option value="ib-higher-p3">Higher Paper 3 (1h15m)</option>
+                            <option value="ib-standard-p1">Standard Paper 1 (1h30m)</option>
+                            <option value="ib-standard-p2">Standard Paper 2 (1h30m)</option>
+                            <option value="IB">Custom IB</option>
+                        </optgroup>
+                        <optgroup label="IGCSE">
+                            <option value="igcse-p2">Paper 2 (1h30m)</option>
+                            <option value="igcse-p4">Paper 4 (1h30m)</option>
+                            <option value="igcse-p6">Paper 6 (1h30m)</option>
+                            <option value="IGCSE">Custom IGCSE</option>
+                        </optgroup>
                     </select>
             </div>
             <div class="form-group">
@@ -908,21 +920,19 @@
 
         // Central Data Presets for specific exams
         const examPresets = {
-            "maths-kangaroo": {
-                durationMin: 100,      
-                extraTimeSec: 0,       
-                customWarnings: [20, 5]   // 20-min AND 5-min warning
-            },
-            "maths-obmep": {
-                durationMin: 150,      
-                extraTimeSec: 0,
-                customWarnings: [20, 5]   // 20-min AND 5-min warning
-            },
-            "maths-jacob-palis": {
-                durationMin: 150,      
-                extraTimeSec: 0,
-                customWarnings: [15, 5]   // 15-min AND 5-min warning
-            }
+            "maths-kangaroo": { durationMin: 100, extraTimeSec: 0, customWarnings: [20, 5] },
+            "maths-obmep": { durationMin: 150, extraTimeSec: 0, customWarnings: [20, 5] },
+            "maths-jacob-palis": { durationMin: 150, extraTimeSec: 0, customWarnings: [15, 5] },
+            
+            "ib-higher-p1": { durationMin: 120 },
+            "ib-higher-p2": { durationMin: 120 },
+            "ib-higher-p3": { durationMin: 75 },
+            "ib-standard-p1": { durationMin: 90 },
+            "ib-standard-p2": { durationMin: 90 },
+            
+            "igcse-p2": { durationMin: 90 },
+            "igcse-p4": { durationMin: 90 },
+            "igcse-p6": { durationMin: 90 }
         };
 
 
@@ -975,7 +985,7 @@ const startTimeInput = document.getElementById('start-time');
         function computeTimes(board, startMin, durationMin, customWarnings = [], extraTimeSec = null) {
             const times = [];
             const endMin = startMin + durationMin;
-            const isIB = board === 'IB';
+            const isIB = board === 'IB' || board.startsWith('ib-');
 
             if (isIB) {
                 times.push({ key: 'reading', label: 'READING', time: startMin - 5 });
@@ -1043,15 +1053,33 @@ const startTimeInput = document.getElementById('start-time');
         function buildCard(timer) {
             const card = document.createElement('div');
             
-            // FIX: Apply proper CSS classes for IB, IGCSE, Maths, and Custom
+            // Map the internal ID to a clean display name
+            const boardLabelMap = {
+                'ib-higher-p1': 'IB - Higher Paper 1',
+                'ib-higher-p2': 'IB - Higher Paper 2',
+                'ib-higher-p3': 'IB - Higher Paper 3',
+                'ib-standard-p1': 'IB - Standard Paper 1',
+                'ib-standard-p2': 'IB - Standard Paper 2',
+                'igcse-p2': 'IGCSE - Paper 2',
+                'igcse-p4': 'IGCSE - Paper 4',
+                'igcse-p6': 'IGCSE - Paper 6',
+                'maths-kangaroo': 'Maths Kangaroo',
+                'maths-obmep': 'Maths OBMEP',
+                'maths-jacob-palis': 'Maths Jacob Palis Jr',
+                'IB': 'IB (Custom)',
+                'IGCSE': 'IGCSE (Custom)'
+            };
+            const displayBoardText = boardLabelMap[timer.board] || timer.board;
+
+            // Apply proper CSS classes
+            const isIB = timer.board === 'IB' || timer.board.startsWith('ib-');
+            const isMaths = timer.board.toLowerCase().startsWith('maths');
+            const isCustom = timer.board === 'Custom';
+
             let boardClass = 'igcse'; // default
-            if (timer.board === 'IB') {
-                boardClass = 'ib';
-            } else if (timer.board.toLowerCase().startsWith('maths')) {
-                boardClass = 'maths';
-            } else if (timer.board === 'Custom') {
-                boardClass = 'custom';
-            }
+            if (isIB) boardClass = 'ib';
+            else if (isMaths) boardClass = 'maths';
+            else if (isCustom) boardClass = 'custom';
             
             card.className = `exam-card ${boardClass}`;
             card.dataset.timerId = timer.id;
@@ -1072,7 +1100,7 @@ const startTimeInput = document.getElementById('start-time');
 
             const boardLabel = document.createElement('div');
             boardLabel.className = 'exam-board-label';
-            boardLabel.textContent = timer.customBoardName || timer.board;
+            boardLabel.textContent = timer.customBoardName || displayBoardText;
             card.appendChild(boardLabel);
 
             const nameLabel = document.createElement('div');
@@ -1088,7 +1116,7 @@ const startTimeInput = document.getElementById('start-time');
             const rowsContainer = document.createElement('div');
             rowsContainer.className = 'time-rows';
 
-            const editableKey = timer.board === 'IB' ? 'reading' : 'start';
+            const editableKey = (timer.board === 'IB' || timer.board.startsWith('ib-')) ? 'reading' : 'start';
 
             timer.times.forEach(t => {
                 if (t.key === editableKey) {
@@ -1144,7 +1172,7 @@ const startTimeInput = document.getElementById('start-time');
         }
 
         function refreshCardRows(timer) {
-            const editableKey = timer.board === 'IB' ? 'reading' : 'start';
+            const editableKey = (timer.board === 'IB' || timer.board.startsWith('ib-')) ? 'reading' : 'start';
             const rowsContainer = timer.el.querySelector('.time-rows');
             const rows = rowsContainer.children;
             timer.times.forEach((t, i) => {
@@ -1277,7 +1305,7 @@ const startTimeInput = document.getElementById('start-time');
 
             timers.forEach(timer => {
                 let highlightClass = 'highlighted-igcse'; 
-                if (timer.board === 'IB') highlightClass = 'highlighted-ib';
+                if (timer.board === 'IB' || timer.board.startsWith('ib-')) highlightClass = 'highlighted-ib';
                 if (timer.board.toLowerCase().startsWith('maths')) highlightClass = 'highlighted-maths';
                 if (timer.board === 'Custom') highlightClass = 'highlighted-custom';
 
