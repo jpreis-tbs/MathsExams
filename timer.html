@@ -335,40 +335,22 @@
             font-variant-numeric: tabular-nums;
         }
 
-        .time-row.highlighted-ib {
-            background: #1a56db;
-            color: #fff;
+        /* --- Robust CSS Variable Theme Engine --- */
+        .exam-card {
+            --card-base-bg: #ffffff; /* The default background color of the card */
         }
+        
+        /* Define the exact theme color for each board */
+        .exam-card.ib { --board-theme-color: #1a56db; }
+        .exam-card.igcse { --board-theme-color: #dc2626; }
+        .exam-card.maths { --board-theme-color: #FFDA03; }
+        .exam-card.custom { --board-theme-color: #000000; }
 
-        .time-row.highlighted-igcse {
-            background: #dc2626;
-            color: #fff;
-        }
-
-        .start-edit-row.highlighted-ib {
-            background: #1a56db;
-            color: #fff;
-        }
-
-        .start-edit-row.highlighted-igcse {
-            background: #dc2626;
-            color: #fff;
-        }
-
-        .time-row.highlighted-maths {
-            background: #FFDA03;
-            color: #000;
-        }
-
-        .start-edit-row.highlighted-maths {
-            background: #FFDA03;
-            color: #000;
-        }
-		
-		.time-row.highlighted-custom,
-        .start-edit-row.highlighted-custom {
-            background: #000000;
-            color: #ffffff;
+        /* Unified Time Row Highlights */
+        .exam-card .time-row[class*="highlighted-"],
+        .exam-card .start-edit-row[class*="highlighted-"] {
+            background-color: var(--board-theme-color) !important;
+            color: var(--card-base-bg) !important;
         }
 
         .countdown-section {
@@ -502,41 +484,19 @@
         }
 
         /* --- Base Countdown Colors (Establishes idle theme colors) --- */
-        .exam-card.ib .countdown-time {
-            color: #1a56db;
+        .exam-card .countdown-time {
+            /* Inherits the exact hex code defined at the top of the card */
+            color: var(--board-theme-color);
+            background-color: transparent;
         }
 
-        .exam-card.igcse .countdown-time {
-            color: #dc2626;
-        }
-
-        .exam-card.maths .countdown-time {
-            color: #FFDA03;
-        }
-
-        .exam-card.custom .countdown-time {
-            color: #000000;
-        }
-
-        /* --- Active Announcement Highlight (Performs a complete color inversion swap) --- */
-        .exam-card.ib .countdown-time.highlighted-ib {
-            background: #1a56db;
-            color: #fff;
-        }
-
-        .exam-card.igcse .countdown-time.highlighted-igcse {
-            background: #dc2626;
-            color: #fff;
-        }
-
-        .exam-card.maths .countdown-time.highlighted-maths {
-            background: #FFDA03;
-            color: #000;
-        }
-		
-        .exam-card.custom .countdown-time.highlighted-custom {
-            background: #000000;
-            color: #ffffff;
+        /* --- Active Announcement Highlight (Performs a strict 1-to-1 color swap) --- */
+        .exam-card .countdown-time[class*="highlighted-"] {
+            /* The background perfectly matches the former font color */
+            background-color: var(--board-theme-color) !important;
+            
+            /* The font perfectly matches the former card background color (white) */
+            color: var(--card-base-bg) !important;
         }
 
         /* Editable start time */
@@ -1035,8 +995,9 @@
                 const card = entry.target;
                 
                 // Redefined as per your logic: L is Horizontal, W is Vertical
-                const L = card.offsetWidth;  
-                const W = card.offsetHeight; 
+                // Switched to clientWidth/Height so JS matches the CSS inset: 0 padding-box
+                const L = card.clientWidth;  
+                const W = card.clientHeight; 
                 const a = Math.min(L, W);
                 const b = Math.max(L, W);
                 
