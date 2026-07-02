@@ -346,17 +346,17 @@
         .exam-card.maths { --board-theme-color: #FFDA03; }
         .exam-card.custom { --board-theme-color: #000000; }
 
-        /* Unified Time Row Highlights */
-        #cards-grid .exam-card .time-row[class*="highlighted-"],
-        #cards-grid .exam-card .start-edit-row[class*="highlighted-"] {
+        /* Unified Time Row Highlights (For ALL boards EXCEPT Maths) */
+        #cards-grid .exam-card:not(.maths) .time-row[class*="highlighted-"],
+        #cards-grid .exam-card:not(.maths) .start-edit-row[class*="highlighted-"] {
             background-color: var(--board-theme-color) !important;
             color: var(--card-base-bg) !important;
         }
 
-        /* Maths Exception: Warning row highlight keeps font black */
+        /* Maths Exception: Warning row highlight stays Yellow Background, Black Font */
         #cards-grid .exam-card.maths .time-row.highlighted-maths,
         #cards-grid .exam-card.maths .start-edit-row.highlighted-maths {
-            background-color: var(--board-theme-color) !important;
+            background-color: #FFDA03 !important;
             color: #000000 !important;
         }
 
@@ -490,26 +490,30 @@
             margin-bottom: 12px;
         }
 
-        /* --- Base Countdown Colors (Establishes idle theme colors) --- */
-        #cards-grid .exam-card .countdown-time {
+        /* --- Base Countdown Colors (For ALL boards EXCEPT Maths) --- */
+        #cards-grid .exam-card:not(.maths) .countdown-time {
             color: var(--board-theme-color);
             background-color: transparent;
         }
 
-        /* Maths Exception: Default Timer has Yellow Background, Black Font */
-        #cards-grid .exam-card.maths .countdown-time {
-            background-color: #FFDA03 !important;
-            color: #000000 !important;
-        }
-
-        /* --- Active Announcement Highlight (Performs a strict 1-to-1 color swap) --- */
-        #cards-grid .exam-card .countdown-time[class*="highlighted-"] {
+        /* --- Active Announcement Highlight (For ALL boards EXCEPT Maths) --- */
+        #cards-grid .exam-card:not(.maths) .countdown-time[class*="highlighted-"] {
             background-color: var(--board-theme-color) !important;
             color: var(--card-base-bg) !important;
         }
 
-        /* Maths Exception: Announcement Timer Swaps to Black Background, Yellow Font */
-        #cards-grid .exam-card.maths .countdown-time.highlighted-maths {
+        /* =========================================
+           MATHS OLYMPIADS - EXCLUSIVE TIMER COLORS
+           ========================================= */
+           
+        /* 1. DEFAULT STATE: Yellow Background, Black Font */
+        html body #cards-grid .exam-card.maths .countdown-time:not(.highlighted-maths) {
+            background-color: #FFDA03 !important;
+            color: #000000 !important;
+        }
+
+        /* 2. ANNOUNCEMENT MINUTE: Black Background, Yellow Font */
+        html body #cards-grid .exam-card.maths .countdown-time.highlighted-maths {
             background-color: #000000 !important;
             color: #FFDA03 !important;
         }
