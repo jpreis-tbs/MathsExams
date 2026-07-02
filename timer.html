@@ -347,15 +347,15 @@
         .exam-card.custom { --board-theme-color: #000000; }
 
         /* Unified Time Row Highlights */
-        .exam-card .time-row[class*="highlighted-"],
-        .exam-card .start-edit-row[class*="highlighted-"] {
+        #cards-grid .exam-card .time-row[class*="highlighted-"],
+        #cards-grid .exam-card .start-edit-row[class*="highlighted-"] {
             background-color: var(--board-theme-color) !important;
             color: var(--card-base-bg) !important;
         }
 
         /* Maths Exception: Warning row highlight keeps font black */
-        .exam-card.maths .time-row.highlighted-maths,
-        .exam-card.maths .start-edit-row.highlighted-maths {
+        #cards-grid .exam-card.maths .time-row.highlighted-maths,
+        #cards-grid .exam-card.maths .start-edit-row.highlighted-maths {
             background-color: var(--board-theme-color) !important;
             color: #000000 !important;
         }
@@ -491,29 +491,25 @@
         }
 
         /* --- Base Countdown Colors (Establishes idle theme colors) --- */
-        .exam-card .countdown-time {
-            /* Inherits the exact hex code defined at the top of the card */
+        #cards-grid .exam-card .countdown-time {
             color: var(--board-theme-color);
             background-color: transparent;
         }
 
         /* Maths Exception: Default Timer has Yellow Background, Black Font */
-        .exam-card.maths .countdown-time {
+        #cards-grid .exam-card.maths .countdown-time {
             background-color: #FFDA03 !important;
             color: #000000 !important;
         }
 
         /* --- Active Announcement Highlight (Performs a strict 1-to-1 color swap) --- */
-        .exam-card .countdown-time[class*="highlighted-"] {
-            /* The background perfectly matches the former font color */
+        #cards-grid .exam-card .countdown-time[class*="highlighted-"] {
             background-color: var(--board-theme-color) !important;
-            
-            /* The font perfectly matches the former card background color (white) */
             color: var(--card-base-bg) !important;
         }
 
         /* Maths Exception: Announcement Timer Swaps to Black Background, Yellow Font */
-        .exam-card.maths .countdown-time.highlighted-maths {
+        #cards-grid .exam-card.maths .countdown-time.highlighted-maths {
             background-color: #000000 !important;
             color: #FFDA03 !important;
         }
