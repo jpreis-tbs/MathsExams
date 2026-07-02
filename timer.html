@@ -453,16 +453,6 @@
             background: #FFDA03;
             color: #000;
         }
-
-        .exam-card.ib .countdown-time.highlighted-ib {
-            background: #1a56db;
-            color: #fff;
-        }
-
-        .exam-card.igcse .countdown-time.highlighted-igcse {
-            background: #dc2626;
-            color: #fff;
-        }
 		
 		.exam-card.custom .countdown-time.highlighted-custom {
             background: #000000;
@@ -840,7 +830,7 @@
             .setup-card {
                 padding: 28px 24px;
             }
-#extra-time-section > div {
+			#extra-time-section > div {
                 flex-direction: column;
                 gap: 6px !important;
             }
@@ -937,7 +927,6 @@
         <div class="bottom-controls">
             <button class="btn btn-primary" id="btn-download">Save Timer</button>
         </div>
-    </div>
 
     <!-- GitHub link -->
     <a class="github-link" href="https://github.com/oscarneiva" target="_blank" rel="noopener noreferrer" aria-label="GitHub profile" title="GitHub">
@@ -987,7 +976,7 @@
         const examNameInput = document.getElementById('exam-name');
         const durationHoursInput = document.getElementById('duration-hours');
         const durationMinutesInput = document.getElementById('duration-minutes');
-const startTimeInput = document.getElementById('start-time');
+		const startTimeInput = document.getElementById('start-time');
 
         // Safely fetch custom inputs (if they exist in your HTML)
         const extraTimeTypeInput = document.getElementById('extra-time-type');
@@ -1393,14 +1382,15 @@ const startTimeInput = document.getElementById('start-time');
                     countdownEl.classList.add(highlightClass);
                 }
 
+                // Hide banner by default for all states except "Exam Finished"
+                if (bannerEl) bannerEl.style.display = 'none';
+
                 if (currentSec >= finalSec) {
                     statusEl.textContent = 'EXAM ENDED';
                     countdownEl.textContent = '00:00:00';
                     countdownEl.classList.remove('warning', 'danger');
                     statusEl.textContent = 'Exam Finished';
                     if (bannerEl) bannerEl.style.display = 'block'; // SHOW BANNER
-                } else {
-                    if (bannerEl) bannerEl.style.display = 'none';  // HIDE BANNER
                 } else if (currentSec >= endSec) {
                     statusEl.textContent = 'Extra Time';
                     const rem = finalSec - currentSec;
