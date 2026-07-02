@@ -1072,16 +1072,32 @@
                 const Dx = L - Bx;
                 const Dy = W - By;
 
-                // --- Calculate dimensions and EXACT angle for the decorative frame ---
-                // --- Calculate dimensions and EXACT angle for the decorative frame ---
-                const rectThickness = Math.hypot(Bx - Ax, By - Ay);
-                const rectLength = Math.hypot(Dx - Ax, Dy - Ay);
+                // --- Calculate Midpoint M and the 4 Inset Points (A', B', C', D') ---
+                const Mx = (Ax + Cx) / 2;
+                const My = (Ay + Cy) / 2;
+                const scale = 0.02;
+
+                const A_px = Ax + scale * (Mx - Ax);
+                const A_py = Ay + scale * (My - Ay);
+
+                const B_px = Bx + scale * (Mx - Bx);
+                const B_py = By + scale * (My - By);
+
+                const C_px = Cx + scale * (Mx - Cx);
+                const C_py = Cy + scale * (My - Cy);
+
+                const D_px = Dx + scale * (Mx - Dx);
+                const D_py = Dy + scale * (My - Dy);
+
+                // --- Calculate dimensions and EXACT angle for the decorative frame using Inset Points ---
+                const rectThickness = Math.hypot(B_px - A_px, B_py - A_py);
+                const rectLength = Math.hypot(D_px - A_px, D_py - A_py);
                 card.style.setProperty('--banner-thickness', `${rectThickness}px`);
                 card.style.setProperty('--banner-length', `${rectLength}px`);
 
-                // Calculate the exact angle of the banner's long edge (A to D)
-                // CSS Y-axis goes down, so we use (Ay - Dy) for the vertical difference
-                const angleRad = Math.atan2(Ay - Dy, Dx - Ax);
+                // Calculate the exact angle of the inner frame's long edge (A' to D')
+                // CSS Y-axis goes down, so we use (A_py - D_py) for the vertical difference
+                const angleRad = Math.atan2(A_py - D_py, D_px - A_px);
                 card.style.setProperty('--banner-angle', `${angleRad}rad`);
 
                 // Map to CSS coordinates (Inverting Y: W - y) to match Top-Left CSS origin
