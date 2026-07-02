@@ -407,8 +407,8 @@
             width: calc(var(--banner-length) - 3cqmin);
             height: calc(var(--banner-thickness) - 3cqmin);
             
-            /* Translates perfectly to center, then rotates exactly along the card's diagonal */
-            transform: translate(-50%, -50%) rotate(atan2(-100cqh, 100cqw));
+            /* Translates perfectly to center, then rotates using the EXACT mathematical angle from JS */
+            transform: translate(-50%, -50%) rotate(var(--banner-angle, atan2(-100cqh, 100cqw)));
             
             /* currentColor dynamically maps to whatever color the banner text is */
             border: max(1.5px, 0.4cqmin) solid currentColor; 
@@ -418,9 +418,8 @@
         }
 
         .exam-finished-text {
-            /* Calculates the exact angle of the card's main diagonal */
-            transform: rotate(atan2(-100cqh, 100cqw));
-            /* Replaced clamp() with purely relative sizing so it scales flawlessly if the card resizes */
+            /* Now uses the exact mathematical angle of the banner to ensure perfect alignment */
+            transform: rotate(var(--banner-angle, atan2(-100cqh, 100cqw)));
             font-size: 8cqw; 
             font-weight: 900;
             text-transform: uppercase;
@@ -1005,15 +1004,17 @@
             for (let entry of entries) {
                 const card = entry.target;
                 
-                const W = card.offsetWidth;
-                const L = card.offsetHeight;
-                const a = Math.min(W, L);
+                // Redefined as per your logic: L is Horizontal, W is Vertical
+                const L = card.offsetWidth;  
+                const W = card.offsetHeight; 
+                const a = Math.min(L, W);
+                const b = Math.max(L, W);
                 
                 // Prevent calculations if the card is hidden or collapsed
-                if (W === 0 && L === 0) continue;
+                if (L === 0 && W === 0) continue;
                 
                 let h, v;
-                if (W >= L) {
+                if (b === W) {
                     h = 0.05 * a;
                     v = 0.20 * a;
                 } else {
@@ -1021,38 +1022,43 @@
                     v = 0.05 * a;
                 }
 
-                const W2 = W * W;
-                const L2 = L * L;
-                const den = W2 + L2;
+                const den = W * W + L * L;
+                const a2 = a * a;
+                const b2 = b * b;
 
                 // Point A 
                 const Ax = h;
                 const Ay = v;
 
-                // Point B (Calculated to guarantee a 90-degree corner)
-                const Bx = (2 * v * W * L + W2 * h - L2 * h) / den;
-                const By = (2 * W * L * h + v * L2 - v * W2) / den;
+                // Point B (Using your exact updated formula)
+                const Bx = (2 * v * a * b + a2 * h - b2 * h) / den;
+                const By = (2 * a * b * h + v * b2 - v * a2) / den;
 
                 // Point C 
-                const Cx = W - h;
-                const Cy = L - v;
+                const Cx = L - h;
+                const Cy = W - v;
 
-                // Point D (Calculated via diagonal bisection)
-                const Dx = W - Bx;
-                const Dy = L - By;
+                // Point D 
+                const Dx = L - Bx;
+                const Dy = W - By;
 
-                // --- Calculate dimensions for the decorative frame ---
+                // --- Calculate dimensions and EXACT angle for the decorative frame ---
                 const rectThickness = Math.hypot(Bx - Ax, By - Ay);
                 const rectLength = Math.hypot(Dx - Ax, Dy - Ay);
                 card.style.setProperty('--banner-thickness', `${rectThickness}px`);
                 card.style.setProperty('--banner-length', `${rectLength}px`);
 
-                // Map to CSS coordinates (Inverting Y: L - y) to match Top-Left CSS origin
+                // Calculate the exact angle of the banner's long edge (A to D)
+                // CSS Y-axis is inverted (goes down), so we use (Ay - Dy) for the Y difference
+                const angleRad = Math.atan2(Ay - Dy, Dx - Ax);
+                card.style.setProperty('--banner-angle', `${angleRad}rad`);
+
+                // Map to CSS coordinates (Inverting Y: W - y) to match Top-Left CSS origin
                 const polygon = `polygon(
-                    ${Ax}px ${L - Ay}px, 
-                    ${Bx}px ${L - By}px, 
-                    ${Cx}px ${L - Cy}px, 
-                    ${Dx}px ${L - Dy}px
+                    ${Ax}px ${W - Ay}px, 
+                    ${Bx}px ${W - By}px, 
+                    ${Cx}px ${W - Cy}px, 
+                    ${Dx}px ${W - Dy}px
                 )`;
                 
                 card.style.setProperty('--banner-clip', polygon);
