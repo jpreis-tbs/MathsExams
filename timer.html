@@ -207,6 +207,8 @@
             cursor: grab;
             user-select: none;
             transition: box-shadow 0.2s, opacity 0.2s;
+            container-type: size;
+            overflow: hidden;
         }
 
         .exam-card.dragging {
@@ -369,21 +371,26 @@
         /* --- Exam Finished Banner --- */
         .exam-finished-banner {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-10deg);
-            color: #fff;
-            padding: 16px 40px;
-            font-size: 3.5rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-            border: 4px solid #fff;
+            inset: 0;
             z-index: 10;
-            display: none; /* Hidden until timer hits 0 */
-            white-space: nowrap;
+            display: none; /* Hidden until timer hits 0, switched to flex in JS */
+            clip-path: polygon(0% 80%, 20% 100%, 100% 20%, 80% 0%);
+            align-items: center;
+            justify-content: center;
             pointer-events: none;
+            color: #fff;
+        }
+
+        .exam-finished-text {
+            /* Calculates the exact angle of the card's main diagonal */
+            transform: rotate(atan2(-100cqh, 100cqw));
+            font-size: clamp(2rem, 9cqw, 4.5rem); 
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            text-align: center;
+            text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.4);
         }
 
         .exam-card.ib .exam-finished-banner { background-color: #1a56db; }
@@ -1197,7 +1204,9 @@
             const countdownSection = document.createElement('div');
             countdownSection.className = 'countdown-section';
             countdownSection.innerHTML = `
-                <div class="exam-finished-banner" id="banner-${timer.id}">EXAM HAS FINISHED</div>
+                <div class="exam-finished-banner" id="banner-${timer.id}">
+                    <div class="exam-finished-text">EXAM HAS FINISHED</div>
+                </div>
                 <div class="countdown-status"></div>
                 <div class="countdown-time">--:--</div>
             `;
@@ -1391,7 +1400,7 @@
                     countdownEl.classList.add(highlightClass);
                 }
 
-                // Hide banner by default for all states except "Exam Finished"
+                // Hide banner by default for all active states
                 if (bannerEl) bannerEl.style.display = 'none';
 
                 if (currentSec >= finalSec) {
@@ -1399,7 +1408,7 @@
                     countdownEl.textContent = '00:00:00';
                     countdownEl.classList.remove('warning', 'danger');
                     statusEl.textContent = 'Exam Finished';
-                    if (bannerEl) bannerEl.style.display = 'block'; // SHOW BANNER
+                    if (bannerEl) bannerEl.style.display = 'flex'; // SHOW BANNER
                 } else if (currentSec >= endSec) {
                     statusEl.textContent = 'Extra Time';
                     const rem = finalSec - currentSec;
