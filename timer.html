@@ -1487,14 +1487,11 @@ const startTimeInput = document.getElementById('start-time');
                     .filter(n => !isNaN(n));
             } 
             // 2. If left blank, check if this specific exam board has preset warnings!
-            else if (examPresets[boardVal] && examPresets[boardVal].customWarnings) {
-                customWarnings = examPresets[boardVal].customWarnings;
+            else if (examPresets[board] && examPresets[board].customWarnings) {
+                customWarnings = examPresets[board].customWarnings;
             }
 
-            // Generate the timeline
-            const times = computeTimes(boardVal, startMin, durationMin, customWarnings, extraTimeSec);
-
-            // FIX: Extra Time Preset Collision Logic
+            // 3. Extra Time Preset Collision Logic
             let extraTimeSec = null;
             if (examPresets[board]) {
                 extraTimeSec = examPresets[board].extraTimeSec;
