@@ -208,6 +208,7 @@
             user-select: none;
             transition: box-shadow 0.2s, opacity 0.2s;
             overflow: hidden;
+            container-type: inline-size; /* Added back to measure horizontal width only */
         }
 
         .exam-card.dragging {
@@ -364,7 +365,7 @@
             text-align: center;
             padding-top: 15px;
             border-top: 1px solid #eee;
-            position: relative; /* Required for the banner overlay */
+            /* Removed position: relative; so the banner anchors to the main card boundaries instead */
         }
 
         /* --- Exam Finished Banner --- */
@@ -384,7 +385,8 @@
         .exam-finished-text {
             /* Calculates the exact angle of the card's main diagonal */
             transform: rotate(atan2(-100cqh, 100cqw));
-            font-size: clamp(2rem, 9cqw, 4.5rem); 
+            /* Replaced clamp() with purely relative sizing so it scales flawlessly if the card resizes */
+            font-size: 8cqw; 
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -425,12 +427,15 @@
 
         .countdown-time {
             display: inline-block;
-            font-size: 6rem;
+            /* clamp(MIN, PREFERRED, MAX) using Container Query Inline (cqi) */
+            font-size: clamp(2.5rem, 18cqi, 6rem); 
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             padding: 4px 18px;
             border-radius: 8px;
             transition: background-color 0.3s, color 0.3s;
+            white-space: nowrap; /* Forces the digits to stay on a single line */
+            letter-spacing: -2px; /* Pulls the digits slightly closer together */
         }
 
 		.next-announcement {
@@ -1046,7 +1051,10 @@
                         times.push({ key: `${w}min`, label: `${w} MIN`, time: endMin - w });
                     }
                 });
-            } else if (durationMin > 5) {
+            } 
+            
+            // Guarantee a preset 5-minute warning for Custom timers (and any exam > 5 mins)
+            if (durationMin > 5 && !times.find(t => t.key === '5min')) {
                 times.push({ key: '5min', label: '5 MIN', time: endMin - 5 });
             }
 
@@ -1388,9 +1396,9 @@
                 }
 
                 timer.times.forEach((t, i) => {
-                    if (rows[i]) rows[i].classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths');
+                    if (rows[i]) rows[i].classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom');
                 });
-                countdownEl.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths');
+                countdownEl.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom');
 
                 if (activeMilestoneIdx >= 0) {
                     if (rows[activeMilestoneIdx]) {
