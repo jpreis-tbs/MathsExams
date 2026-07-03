@@ -1644,14 +1644,20 @@
             }
         });
 
-        // FIX: The Add Timer button logic with Custom Arrays & Presets 
+        // Start timer
         document.getElementById('btn-start').addEventListener('click', () => {
             const board = examBoardSelect.value;
             const name = examNameInput.value.trim() || 'Unnamed Exam';
             const hours = parseInt(durationHoursInput.value) || 0;
             const minutes = parseInt(durationMinutesInput.value) || 0;
             const durationMin = hours * 60 + minutes;
-            
+
+            if (durationMin <= 0) {
+                alert('Please enter a valid duration.');
+                return;
+            }
+
+            // Capture the reading duration from the new Phase 6 input
             const readingDurationMin = parseFloat(document.getElementById('reading-duration').value) || 0;
 
             if (!/^([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/.test(startTimeInput.value)) {
@@ -1660,18 +1666,30 @@
             }
             const startMin = timeStrToMinutes(startTimeInput.value);
 
-            const customBoardName = board === 'Custom' ? prompt('Enter custom board name:', 'Custom Board') || 'Custom' : null;
-
-            let customWarnings = [];
-            if (customWarningsContainer.style.display !== 'none' && customWarningTimesInput && customWarningTimesInput.value.trim() !== '') {
-                customWarnings = customWarningTimesInput.value.split(',')
-                    .map(s => parseInt(s.trim()))
-                    .filter(n => !isNaN(n) && n > 0)
-                    .sort((a, b) => b - a); 
+            let customBoardName = null;
+            if (board === 'Custom') {
+                customBoardName = prompt('Enter custom board name:', 'Custom Board') || 'Custom';
+            } else if (typeof customBoardNameInput !== 'undefined' && customBoardNameInput) {
+                customBoardName = customBoardNameInput.value || null;
             }
 
+            // Resolve Custom Warnings (Restoring your preset fallback logic)
+            let customWarnings = [];
+            if (typeof customWarningTimesInput !== 'undefined' && customWarningTimesInput && customWarningTimesInput.value.trim() !== '') {
+                customWarnings = customWarningTimesInput.value.split(',')
+                    .map(s => parseInt(s.trim()))
+                    .filter(n => !isNaN(n));
+            }
+            if (customWarnings.length === 0 && typeof examPresets !== 'undefined' && examPresets[board] && examPresets[board].customWarnings) {
+                customWarnings = [...examPresets[board].customWarnings]; 
+            }
+            if (customWarnings.length > 0) {
+                customWarnings.sort((a, b) => b - a);
+            }
+
+            // Resolve Extra Time
             let extraTimeSec = null;
-            if (extraTimeTypeInput && extraTimeValueInput) {
+            if (typeof extraTimeTypeInput !== 'undefined' && extraTimeTypeInput && extraTimeValueInput) {
                 const extraTimeType = extraTimeTypeInput.value;
                 const extraTimeValue = parseFloat(extraTimeValueInput.value) || 0;
                 
@@ -1684,6 +1702,7 @@
                 }
             }
 
+            // Pass everything to the generator
             const data = { board, name, durationMin, startMin, customBoardName, customWarnings, extraTimeSec, readingDurationMin };
             addTimer(data);
         });
