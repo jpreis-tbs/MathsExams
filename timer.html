@@ -507,14 +507,27 @@
            ========================================= */
            
         /* 1. DEFAULT STATE: Yellow Background, Black Font */
-        html body #cards-grid .exam-card.maths .countdown-time:not(.highlighted-maths) {
+        html body #cards-grid .exam-card.maths .countdown-time {
             background-color: #FFDA03 !important;
+            color: #000000 !important;
+        }
+        
+        /* Force the inner text element to also default to black */
+        html body #cards-grid .exam-card.maths .countdown-time .time-display {
             color: #000000 !important;
         }
 
         /* 2. ANNOUNCEMENT MINUTE: Black Background, Yellow Font */
-        html body #cards-grid .exam-card.maths .countdown-time.highlighted-maths {
+        /* Listens for the announcement state on the main card */
+        html body #cards-grid .exam-card.maths.announcement .countdown-time {
             background-color: #000000 !important;
+            color: #FFDA03 !important;
+        }
+
+        /* Forces the inner text child to perfectly swap to yellow */
+        html body #cards-grid .exam-card.maths.announcement .countdown-time .time-display,
+        html body #cards-grid .exam-card.maths .countdown-time .time-display.highlighted-maths {
+            background-color: transparent !important;
             color: #FFDA03 !important;
         }
 
