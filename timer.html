@@ -543,32 +543,34 @@
         }
 
         .start-edit-input {
-            width: 7ch; /* Slightly wider than HH:MM */
-            text-align: right;
-            margin-right: 15px; /* Offset from right border */
-            
-            /* Handle overflow for extra seconds */
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: clip; 
-            
             font-size: 1.2rem;
             font-weight: 700;
             font-family: inherit;
             font-variant-numeric: tabular-nums;
-            border: 2px solid transparent; 
+            border: 2px solid transparent;
             border-radius: 6px;
-            padding: 2px 4px;
+            padding: 2px 6px; /* Increased right padding slightly */
             background: transparent;
             color: inherit;
             outline: none;
-            cursor: text;
+            text-align: right;
+            
+            /* A generous fixed width ensures the final zero is NEVER clipped */
+            width: 120px; 
+            
+            /* Pushes exactly 8px rightward to seamlessly align text with the rows above/below */
+            margin-right: -8px; 
+
+            /* Browser address-bar style text-truncation behavior */
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: clip;
         }
 
         .start-edit-input:focus,
         .start-edit-input:hover {
             border-color: currentColor;
-            opacity: 0.8;
+            background: rgba(0, 0, 0, 0.05);
         }
 
         .start-edit-input::-webkit-calendar-picker-indicator,
