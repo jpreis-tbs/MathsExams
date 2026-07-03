@@ -506,31 +506,31 @@
            MATHS OLYMPIADS - EXCLUSIVE TIMER COLORS
            ========================================= */
            
-        /* 1. DEFAULT STATE: Yellow Background, Black Font */
-        html body #cards-grid .exam-card.maths .countdown-time {
+        /* 1. DEFAULT STATE (JS applies the highlight class normally) */
+        html body #cards-grid .exam-card.maths .countdown-time[class*="highlighted"] {
             background-color: #FFDA03 !important;
             color: #000000 !important;
         }
         
         /* Bulletproof: Force EVERY inner text element to be black */
-        html body #cards-grid .exam-card.maths .countdown-time * {
+        html body #cards-grid .exam-card.maths .countdown-time[class*="highlighted"] * {
             color: #000000 !important;
         }
 
-        /* 2. ANNOUNCEMENT MINUTE: Black Background, Yellow Font */
-        html body #cards-grid .exam-card.maths .countdown-time[class*="highlighted"] {
+        /* 2. ANNOUNCEMENT MINUTE (JS removes the class) */
+        html body #cards-grid .exam-card.maths .countdown-time {
             background-color: #000000 !important;
             color: #FFDA03 !important;
         }
         
         /* Bulletproof: Force EVERY inner text element to swap to yellow */
-        html body #cards-grid .exam-card.maths .countdown-time[class*="highlighted"] * {
+        html body #cards-grid .exam-card.maths .countdown-time * {
             color: #FFDA03 !important;
         }
 
         /* Forces the inner text child to perfectly swap to yellow */
         html body #cards-grid .exam-card.maths.announcement .countdown-time .time-display,
-        html body #cards-grid .exam-card.maths .countdown-time .time-display.highlighted-maths {
+        html body #cards-grid .exam-card.maths .countdown-time .time-display {
             background-color: transparent !important;
             color: #FFDA03 !important;
         }
