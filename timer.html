@@ -543,22 +543,32 @@
         }
 
         .start-edit-input {
+            width: 7ch; /* Slightly wider than HH:MM */
+            text-align: right;
+            margin-right: 15px; /* Offset from right border */
+            
+            /* Handle overflow for extra seconds */
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: clip; 
+            
             font-size: 1.2rem;
             font-weight: 700;
             font-family: inherit;
             font-variant-numeric: tabular-nums;
-            border: 2px solid #ccc;
+            border: 2px solid transparent; 
             border-radius: 6px;
-            padding: 2px 10px;
-            background: #fff;
-            color: #000;
+            padding: 2px 4px;
+            background: transparent;
+            color: inherit;
             outline: none;
-            width: auto;
-            text-align: center;
+            cursor: text;
         }
 
-        .start-edit-input:focus {
-            border-color: #888;
+        .start-edit-input:focus,
+        .start-edit-input:hover {
+            border-color: currentColor;
+            opacity: 0.8;
         }
 
         .start-edit-input::-webkit-calendar-picker-indicator,
@@ -1330,16 +1340,10 @@
 						const row = document.createElement('div');
 						row.className = 'start-edit-row';
 						row.dataset.key = t.key;
-						
-						let durationHtml = '';
-						if (t.key === 'reading') {
-							durationHtml = `<input type="number" class="reading-duration-input" step="any" style="width: 50px; padding: 2px 4px; text-align: center; margin-left: 8px; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; color: #000;" value="${timer.readingDurationMin}"> <span style="font-size: 0.9rem; font-weight:normal; margin-left:2px; color: inherit;">min</span>`;
-						}
 
 						row.innerHTML = `
 							<div class="label" style="display:flex; align-items:center;">
-								${t.label} 
-								${durationHtml}
+								${t.label}
 							</div>
 							<input type="text" class="start-edit-input" value="${minutesToTimeStr(t.time)}" pattern="([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?" lang="en-GB">
 						`;
@@ -1360,23 +1364,6 @@
 								input.value = minutesToTimeStr(t.time);
 							}
 						});
-
-						if (t.key === 'reading') {
-							const durInput = row.querySelector('.reading-duration-input');
-							if (durInput) {
-								durInput.addEventListener('change', (e) => {
-									let newDur = parseFloat(e.target.value);
-									if (isNaN(newDur) || newDur < 0) {
-										newDur = timer.readingDurationMin;
-										e.target.value = newDur;
-									} else {
-										timer.readingDurationMin = newDur;
-										timer.times = computeTimes(timer.board, timer.startMin, timer.durationMin, timer.customWarnings, timer.extraTimeSec, timer.readingDurationMin);
-										refreshCardRows(timer);
-									}
-								});
-							}
-						}
 					} else {
 						const row = document.createElement('div');
 						row.className = 'time-row';
