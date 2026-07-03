@@ -1706,48 +1706,6 @@
             const data = { board, name, durationMin, startMin, customBoardName, customWarnings, extraTimeSec, readingDurationMin };
             addTimer(data);
         });
-            const startMin = timeStrToMinutes(startTimeInput.value);
-
-            if (durationMin <= 0) {
-                alert('Please enter a valid duration.');
-                return;
-            }
-
-            let customBoardName = null;
-            if (customBoardNameInput) customBoardName = customBoardNameInput.value || null;
-
-            // FIX: Convert comma string to an array for custom warnings
-            // 1. Check if the user typed any custom warnings manually
-            let customWarnings = [];
-            if (customWarningTimesInput && customWarningTimesInput.value.trim() !== '') {
-                customWarnings = customWarningTimesInput.value.split(',')
-                    .map(s => parseInt(s.trim()))
-                    .filter(n => !isNaN(n));
-            } 
-            // 2. If left blank, check if this specific exam board has preset warnings!
-            else if (examPresets[board] && examPresets[board].customWarnings) {
-                customWarnings = examPresets[board].customWarnings;
-            }
-
-            // 3. Extra Time Calculation
-            // Always read from the UI so the user has full control over extra time!
-            let extraTimeSec = 0; // Default to 0
-            if (extraTimeTypeInput && extraTimeValueInput) {
-                const extraTimeType = extraTimeTypeInput.value;
-                const extraTimeValue = parseFloat(extraTimeValueInput.value) || 0;
-
-                if (extraTimeType === 'percentage') {
-                    extraTimeSec = (durationMin * 60) * (extraTimeValue / 100);
-                } else if (extraTimeType === 'absolute') {
-                    extraTimeSec = extraTimeValue * 60;
-                } else if (extraTimeType === 'none') {
-                    extraTimeSec = 0;
-                }
-            }
-
-            const data = { board, name, durationMin, startMin, customBoardName, customWarnings, extraTimeSec };
-            addTimer(data);
-        }); // <- Syntax error fixed here
 
         btnCancel.addEventListener('click', () => {
             setupOverlay.classList.add('hidden');
@@ -1761,7 +1719,8 @@
             // 0. Handle Reading Time Defaults
             const readingDurationInput = document.getElementById('reading-duration');
             if (readingDurationInput) {
-                if (board === 'IB' || board.startsWith('ib-')) {
+                // If the board's value contains "IB" (case-insensitive), default to 5
+                if (board.toUpperCase().includes('IB')) {
                     readingDurationInput.value = '5';
                 } else {
                     readingDurationInput.value = '0';
@@ -1911,6 +1870,9 @@
 
         document.getElementById('toast-dismiss').addEventListener('click', hideToast);
         document.getElementById('toast-backdrop').addEventListener('click', hideToast);
+
+        // Force the presets to load based on the default selected dropdown option
+        examBoardSelect.dispatchEvent(new Event('change'));
 
         showSetup();
     </script>
