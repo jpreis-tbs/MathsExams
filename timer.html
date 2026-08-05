@@ -169,7 +169,8 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            padding: 15px 0;
+            /* Added 15px left/right padding so the scrollbar doesn't overlap the right button */
+            padding: 15px 15px; 
             background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(8px);
             border-bottom: 1px solid #eaeaea;
@@ -177,6 +178,12 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            
+            /* --- NEW PROPERTIES FOR RESIZING & SCROLLING --- */
+            resize: vertical;      /* Allows the user to drag the bottom edge to resize */
+            overflow-y: auto;      /* Introduces a scrollbar if the header gets too small for its content */
+            min-height: 90px;      /* Prevents the user from crushing it so small the buttons break */
+            max-height: 60vh;      /* Prevents dragging the header past 60% of the screen height */
         }
         
         .header-center {
@@ -250,11 +257,12 @@
             overflow: hidden;
             
             /* Flexbox sizing and resizing */
-            flex: 1 1 calc(25% - 24px); 
+            flex: 0 1 auto;             /* Changed flex-grow to 0 so it respects manual resizing */
+            width: calc(25% - 24px);    /* Sets a base width of 4 columns */
             min-width: 280px;           
             min-height: 250px;
             max-width: 100%;
-            resize: both; /* Both horizontal and vertical resizing will now work */              
+            resize: both; /* Both horizontal and vertical resizing will now work */
         }
 
         /* New inner wrapper to handle container queries without breaking resize */
@@ -872,7 +880,9 @@
 
         /* Responsive: small desktops / large tablets -> 3 columns */
         @media (max-width: 1100px) {
-            /* Handled automatically by Flexbox wrapping */
+            .exam-card {
+                width: calc(33.33% - 24px); /* Switches to 3 columns */
+            }
         }
 
         /* Responsive: tablets (iPad portrait) -> 2 columns */
@@ -883,6 +893,10 @@
 
             .countdown-time {
                 font-size: 5rem;
+            }
+            
+            .exam-card {
+                width: calc(50% - 24px); /* Switches to 2 columns */
             }
         }
 
@@ -912,6 +926,7 @@
 
             .exam-card {
                 padding: 22px 22px;
+                width: 100%; /* Forces cards to take up the full screen width on phones */
             }
 
             .exam-name {
