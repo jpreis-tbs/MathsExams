@@ -211,14 +211,22 @@
             user-select: none;
             transition: box-shadow 0.2s, opacity 0.2s;
             overflow: hidden;
-            container-type: inline-size; /* Added back to measure horizontal width only */
             
             /* Flexbox sizing and resizing */
             flex: 1 1 calc(25% - 24px); 
             min-width: 280px;           
             min-height: 250px;
             max-width: 100%;
-            resize: both;               
+            resize: both; /* Both horizontal and vertical resizing will now work */              
+        }
+
+        /* New inner wrapper to handle container queries without breaking resize */
+        .exam-card-inner {
+            container-type: inline-size;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
         }
 
         .exam-card.dragging {
@@ -1323,20 +1331,24 @@
             removeBtn.addEventListener('click', () => removeTimer(timer.id));
             card.appendChild(removeBtn);
 
+            // Create the new inner wrapper to separate Flexbox resizing from Container Queries
+            const innerWrapper = document.createElement('div');
+            innerWrapper.className = 'exam-card-inner';
+
             const boardLabel = document.createElement('div');
             boardLabel.className = 'exam-board-label';
             boardLabel.textContent = timer.customBoardName || displayBoardText;
-            card.appendChild(boardLabel);
+            innerWrapper.appendChild(boardLabel);
 
             const nameLabel = document.createElement('div');
             nameLabel.className = 'exam-name';
             nameLabel.textContent = timer.name;
-            card.appendChild(nameLabel);
+            innerWrapper.appendChild(nameLabel);
 
             const durLabel = document.createElement('div');
             durLabel.className = 'exam-duration-label';
             durLabel.textContent = minutesToHM(timer.durationMin);
-            card.appendChild(durLabel);
+            innerWrapper.appendChild(durLabel);
 
             const rowsContainer = document.createElement('div');
 			rowsContainer.className = 'time-rows';
@@ -1388,7 +1400,7 @@
 			timer.renderRows = renderRows;
 			renderRows();
 
-			card.appendChild(rowsContainer);
+			innerWrapper.appendChild(rowsContainer);
 
             const countdownSection = document.createElement('div');
             countdownSection.className = 'countdown-section';
@@ -1399,7 +1411,10 @@
                 <div class="countdown-status"></div>
                 <div class="countdown-time">--:--</div>
             `;
-            card.appendChild(countdownSection);
+            innerWrapper.appendChild(countdownSection);
+            
+            // Append the entire wrapper to the main card
+            card.appendChild(innerWrapper);
 
             timer.el = card;
             return card;
