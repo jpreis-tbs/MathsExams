@@ -154,7 +154,7 @@
             display: none;
             width: 100%;
             min-height: 100vh;
-            padding: 30px 40px 80px;
+            padding: 0 40px 80px;
             flex-direction: column;
             align-items: center;
         }
@@ -163,11 +163,48 @@
             display: flex;
         }
 
+        /* Fixed Sticky Header */
         .timer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 15px 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #eaeaea;
+            margin-bottom: 36px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-center {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 36px;
+        }
+
+        /* New Add Timer buttons restricted to header size */
+        .header-add-btn {
+            height: 50px;
+            padding: 0 24px;
+            background-color: #000;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .header-add-btn:hover {
+            opacity: 0.85;
+        }
+
+        .header-add-btn:active {
+            transform: translateY(2px);
         }
 
         .current-time-label {
@@ -601,44 +638,6 @@
             padding: 0;
         }
 
-        /* Add timer button (inside grid) */
-        .add-card {
-            border: 3px dashed #ddd;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 200px;
-            cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
-            
-            /* Flexbox sizing */
-            flex: 1 1 calc(25% - 24px);
-            min-width: 280px;
-            max-width: 100%;
-        }
-
-        .add-card:hover {
-            border-color: #aaa;
-            background: #fafafa;
-        }
-
-        .add-card-content {
-            text-align: center;
-            color: #aaa;
-        }
-
-        .add-card-content .plus {
-            font-size: 3rem;
-            font-weight: 300;
-            line-height: 1;
-        }
-
-        .add-card-content .add-label {
-            font-size: 1.1rem;
-            margin-top: 6px;
-        }
-
         /* Toast popup */
         #toast {
             position: fixed;
@@ -894,7 +893,13 @@
             }
 
             .timer-header {
+                padding: 10px 0;
                 margin-bottom: 24px;
+            }
+            .header-add-btn {
+                padding: 0 12px;
+                font-size: 0.9rem;
+                height: 44px;
             }
 
             .current-time {
@@ -1016,9 +1021,13 @@
     <!-- Timer view -->
     <div id="timer-view">
             <div class="timer-header">
-                <div class="current-time-label">Current time</div>
-                <div class="current-time" id="current-time">--:--:--</div>
-                <div id="next-announcement">Next announcement: ---</div>
+                <button class="header-add-btn" onclick="showSetup()">+ Add Timer</button>
+                <div class="header-center">
+                    <div class="current-time-label">Current time</div>
+                    <div class="current-time" id="current-time">--:--:--</div>
+                    <div id="next-announcement">Next announcement: ---</div>
+                </div>
+                <button class="header-add-btn" onclick="showSetup()">+ Add Timer</button>
             </div>
             <div class="cards-grid" id="cards-grid"></div>
         </div>
@@ -1426,24 +1435,6 @@
             }
         }
 
-        function renderAddCard() {
-            const existing = cardsGrid.querySelector('.add-card');
-            if (existing) existing.remove();
-
-            if (timers.length < MAX_TIMERS) {
-                const addCard = document.createElement('div');
-                addCard.className = 'add-card';
-                addCard.innerHTML = `
-                    <div class="add-card-content">
-                        <div class="plus">+</div>
-                        <div class="add-label">Add Timer</div>
-                    </div>
-                `;
-                addCard.addEventListener('click', showSetup);
-                cardsGrid.appendChild(addCard);
-            }
-        }
-
         function addTimer(data) {
             if (timers.length >= MAX_TIMERS) {
                 alert('Maximum of ' + MAX_TIMERS + ' timers reached.');
@@ -1467,14 +1458,7 @@
             timers.push(timer);
             const card = buildCard(timer);
 
-            const addCard = cardsGrid.querySelector('.add-card');
-            if (addCard) {
-                cardsGrid.insertBefore(card, addCard);
-            } else {
-                cardsGrid.appendChild(card);
-            }
-
-            renderAddCard();
+            cardsGrid.appendChild(card);
             setupOverlay.classList.add('hidden');
             timerView.classList.add('active');
 
@@ -1504,8 +1488,6 @@
             const timer = timers[idx];
             timer.el.remove();
             timers.splice(idx, 1);
-
-            renderAddCard();
 
             if (timers.length === 0) {
                 clearInterval(tickInterval);
@@ -1786,7 +1768,6 @@
 
                     timers.forEach(t => t.el.remove());
                     timers.length = 0;
-                    renderAddCard();
 
                     data.forEach(d => {
                         if (d.board && d.name && d.durationMin && d.startMin !== undefined) {
