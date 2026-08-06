@@ -472,9 +472,8 @@
             /* Dynamically sizes the font based on the UV length, capped against vertical overflow */
             font-size: min(calc(var(--uv-length) * 0.075), calc(var(--banner-thickness) * 0.45)); 
             
-            /* Forces the string to stretch from point U to point V */
-            text-align: justify;
-            text-align-last: justify;
+            /* Centers the string perfectly inside the UV segment */
+            text-align: center;
             
             color: inherit; 
             font-weight: 900;
@@ -1127,19 +1126,23 @@
                 // --- Calculate Midpoint M and the 4 Inset Points (A', B', C', D') ---
                 const Mx = (Ax + Cx) / 2;
                 const My = (Ay + Cy) / 2;
-                const scale = 0.02;
+                
+                // Define individual offsets (5% inset)
+                const frameOffset = 0.05;
+                const textOffset = 0.05;
 
-                const A_px = Ax + scale * (Mx - Ax);
-                const A_py = Ay + scale * (My - Ay);
+                // Apply linear interpolation: (1 - offset) * POINT + offset * MIDPOINT
+                const A_px = (1 - frameOffset) * Ax + frameOffset * Mx;
+                const A_py = (1 - frameOffset) * Ay + frameOffset * My;
 
-                const B_px = Bx + scale * (Mx - Bx);
-                const B_py = By + scale * (My - By);
+                const B_px = (1 - frameOffset) * Bx + frameOffset * Mx;
+                const B_py = (1 - frameOffset) * By + frameOffset * My;
 
-                const C_px = Cx + scale * (Mx - Cx);
-                const C_py = Cy + scale * (My - Cy);
+                const C_px = (1 - frameOffset) * Cx + frameOffset * Mx;
+                const C_py = (1 - frameOffset) * Cy + frameOffset * My;
 
-                const D_px = Dx + scale * (Mx - Dx);
-                const D_py = Dy + scale * (My - Dy);
+                const D_px = (1 - frameOffset) * Dx + frameOffset * Mx;
+                const D_py = (1 - frameOffset) * Dy + frameOffset * My;
 
                 // --- Calculate Text Span Segment UV ---
                 // Midpoints of the inner frame's short edges (A'B' and C'D')
@@ -1149,12 +1152,12 @@
                 const M_CD_x = (C_px + D_px) / 2;
                 const M_CD_y = (C_py + D_py) / 2;
 
-                // U and V pulled 2% towards the exact center of the card (M)
-                const U_x = 0.98 * M_AB_x + 0.02 * Mx;
-                const U_y = 0.98 * M_AB_y + 0.02 * My;
+                // U and V pulled inward towards the exact center of the card (M)
+                const U_x = (1 - textOffset) * M_AB_x + textOffset * Mx;
+                const U_y = (1 - textOffset) * M_AB_y + textOffset * My;
                 
-                const V_x = 0.98 * M_CD_x + 0.02 * Mx;
-                const V_y = 0.98 * M_CD_y + 0.02 * My;
+                const V_x = (1 - textOffset) * M_CD_x + textOffset * Mx;
+                const V_y = (1 - textOffset) * M_CD_y + textOffset * My;
 
                 // Calculate the exact pixel length of the UV segment
                 const uvLength = Math.hypot(V_x - U_x, V_y - U_y);
