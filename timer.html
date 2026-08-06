@@ -1105,16 +1105,16 @@
                 }
 
                 const den = W * W + L * L;
-                const a2 = a * a;
-                const b2 = b * b;
+                const L2 = L * L;
+                const W2 = W * W;
 
                 // Point A 
                 const Ax = h;
                 const Ay = v;
 
-                // Point B 
-                const Bx = (2 * v * a * b + a2 * h - b2 * h) / den;
-                const By = (2 * a * b * h + v * b2 - v * a2) / den;
+                // Point B (Corrected orthogonal projection)
+                const Bx = (2 * v * L * W + h * L2 - h * W2) / den;
+                const By = (2 * h * L * W + v * W2 - v * L2) / den;
 
                 // Point C 
                 const Cx = L - h;
