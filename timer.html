@@ -448,38 +448,42 @@
         }
 
         /* --- The Decorative Inset Frame --- */
-        .exam-finished-banner::before {
-            content: "";
+        .exam-finished-frame {
             position: absolute;
-            left: 50%;
-            top: 50%;
-            /* Insets the frame by exactly 12px total (6px on all sides) relative to geometric bounds */
+            /* Insets the frame by 12px total relative to geometric bounds */
             width: calc(var(--banner-length) - 12px);
             height: calc(var(--banner-thickness) - 12px);
+            transform: rotate(var(--banner-angle, 0rad));
             
-            /* Translates perfectly to center, then rotates using the EXACT mathematical angle from JS */
-            transform: translate(-50%, -50%) rotate(var(--banner-angle, 0rad));
-            
-            /* currentColor dynamically maps to whatever color the banner text is */
+            /* currentColor preserves your theme colors (e.g., black for Maths) */
             border: 2px solid currentColor; 
-            border-radius: 4px; /* Slight rounding on the frame corners */
-            pointer-events: none;
+            border-radius: 4px;
             box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
         }
 
         .exam-finished-text {
-            /* Uses the exact mathematical angle of the banner to ensure perfect alignment */
-            transform: rotate(var(--banner-angle, 0rad));
+            /* Forces the text container to exactly match the length of segment UV */
+            width: var(--uv-length);
             
-            /* Dynamically sizes the font based on the vertical thickness of the banner */
-            font-size: calc(var(--banner-thickness) * 0.45); 
+            /* Dynamically sizes the font based on the UV length, capped against vertical overflow */
+            font-size: min(calc(var(--uv-length) * 0.075), calc(var(--banner-thickness) * 0.45)); 
             
+            /* Forces the string to stretch from point U to point V */
+            text-align: justify;
+            text-align-last: justify;
+            
+            color: inherit; 
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
             white-space: nowrap;
-            text-align: center;
             text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
+            
+            /* The frame handles the rotation, so text stays flat inside */
+            transform: none; 
         }
 
         .exam-card.ib .exam-finished-banner { background-color: #1a56db; }
@@ -1081,15 +1085,15 @@
             for (let entry of entries) {
                 const card = entry.target;
                 
-                // Redefined as per your logic: L is Horizontal, W is Vertical
-                // Switched to clientWidth/Height so JS matches the CSS inset: 0 padding-box
+                // L is Horizontal width, W is Vertical height
                 const L = card.clientWidth;  
                 const W = card.clientHeight; 
-                const a = Math.min(L, W);
-                const b = Math.max(L, W);
                 
                 // Prevent calculations if the card is hidden or collapsed
                 if (L === 0 && W === 0) continue;
+                
+                const a = Math.min(L, W);
+                const b = Math.max(L, W);
                 
                 let h, v;
                 if (b === W) {
@@ -1108,7 +1112,7 @@
                 const Ax = h;
                 const Ay = v;
 
-                // Point B (Using your exact updated formula)
+                // Point B 
                 const Bx = (2 * v * a * b + a2 * h - b2 * h) / den;
                 const By = (2 * a * b * h + v * b2 - v * a2) / den;
 
@@ -1137,15 +1141,35 @@
                 const D_px = Dx + scale * (Mx - Dx);
                 const D_py = Dy + scale * (My - Dy);
 
-                // --- Calculate dimensions and EXACT angle for the decorative frame using Inset Points ---
+                // --- Calculate Text Span Segment UV ---
+                // Midpoints of the inner frame's short edges (A'B' and C'D')
+                const M_AB_x = (A_px + B_px) / 2;
+                const M_AB_y = (A_py + B_py) / 2;
+                
+                const M_CD_x = (C_px + D_px) / 2;
+                const M_CD_y = (C_py + D_py) / 2;
+
+                // U and V pulled 2% towards the exact center of the card (M)
+                const U_x = 0.98 * M_AB_x + 0.02 * Mx;
+                const U_y = 0.98 * M_AB_y + 0.02 * My;
+                
+                const V_x = 0.98 * M_CD_x + 0.02 * Mx;
+                const V_y = 0.98 * M_CD_y + 0.02 * My;
+
+                // Calculate the exact pixel length of the UV segment
+                const uvLength = Math.hypot(V_x - U_x, V_y - U_y);
+
+                // --- Calculate dimensions and EXACT angle for the decorative frame ---
                 const rectThickness = Math.hypot(B_px - A_px, B_py - A_py);
                 const rectLength = Math.hypot(D_px - A_px, D_py - A_py);
-                card.style.setProperty('--banner-thickness', `${rectThickness}px`);
-                card.style.setProperty('--banner-length', `${rectLength}px`);
 
                 // Calculate the exact angle of the inner frame's long edge (A' to D')
-                // CSS Y-axis goes down, so we use (A_py - D_py) for the vertical difference
                 const angleRad = Math.atan2(A_py - D_py, D_px - A_px);
+                
+                // Pass all geometric variables to CSS for real-time redrawing
+                card.style.setProperty('--banner-thickness', `${rectThickness}px`);
+                card.style.setProperty('--banner-length', `${rectLength}px`);
+                card.style.setProperty('--uv-length', `${uvLength}px`);
                 card.style.setProperty('--banner-angle', `${angleRad}rad`);
 
                 // Map to CSS coordinates (Inverting Y: W - y) to match Top-Left CSS origin
@@ -1155,7 +1179,6 @@
                     ${Cx}px ${W - Cy}px, 
                     ${Dx}px ${W - Dy}px
                 )`;
-                
                 card.style.setProperty('--banner-clip', polygon);
             }
         });
@@ -1430,7 +1453,9 @@
             countdownSection.className = 'countdown-section';
             countdownSection.innerHTML = `
                 <div class="exam-finished-banner" id="banner-${timer.id}">
-                    <div class="exam-finished-text">EXAM HAS FINISHED</div>
+                    <div class="exam-finished-frame">
+                        <div class="exam-finished-text">EXAM HAS FINISHED</div>
+                    </div>
                 </div>
                 <div class="countdown-status"></div>
                 <div class="countdown-time">--:--</div>
