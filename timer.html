@@ -1346,9 +1346,13 @@
                 const extraEndMin = endMin + extraMin;
                 times.push({ key: 'extratime', label: 'EXTRA TIME', time: extraEndMin });
                 
+                // Dynamically inherit all regular minute warnings that were generated
+                const generatedRegularWarnings = times
+                    .filter(t => /^\d+min$/.test(t.key))
+                    .map(t => parseInt(t.key.replace('min', '')));
+
                 // Generate Extra Time Warnings (Hidden from UI)
-                let extraWarnings = customWarnings && customWarnings.length > 0 ? customWarnings : [5];
-                extraWarnings.forEach(w => {
+                generatedRegularWarnings.forEach(w => {
                     if (extraMin > w) {
                         times.push({ 
                             key: `extra-${w}min`, 
@@ -1680,7 +1684,7 @@
 
                 // Cleanup all highlights
                 Array.from(rows).forEach(row => {
-                    row.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-primary', 'active-extra-secondary');
+                    row.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-primary', 'active-extra-secondary', 'active-extra-warning');
                     const badge = row.querySelector('.extra-badge');
                     if (badge) {
                         badge.style.display = 'none';
@@ -1702,6 +1706,11 @@
                         const regRow = timer.el.querySelector(`[data-key="${regularMilestones[0].key}"]`);
                         if (regRow) regRow.classList.add(highlightClass);
                         
+                        // Dynamically find and highlight the matching regular row for the extra warning
+                        const extraKey = extraMilestones[0].key.replace('extra-', '');
+                        const matchingRegRow = timer.el.querySelector(`[data-key="${extraKey}"]`);
+                        if (matchingRegRow) matchingRegRow.classList.add('active-extra-warning');
+
                         // Highlight extra (secondary muted)
                         if (extraRow) {
                             extraRow.classList.add('active-extra-secondary');
@@ -1714,6 +1723,11 @@
                     } 
                     // If only extra warnings
                     else if (extraMilestones.length > 0) {
+                        // Dynamically find and highlight the matching regular row for the extra warning
+                        const extraKey = extraMilestones[0].key.replace('extra-', '');
+                        const matchingRegRow = timer.el.querySelector(`[data-key="${extraKey}"]`);
+                        if (matchingRegRow) matchingRegRow.classList.add('active-extra-warning');
+
                         if (extraRow) {
                             extraRow.classList.add('active-extra-primary');
                             const badge = extraRow.querySelector('.extra-badge');
