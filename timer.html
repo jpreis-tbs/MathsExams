@@ -402,10 +402,56 @@
         }
         
         /* Define the exact theme color for each board */
-        .exam-card.ib { --board-theme-color: #1a56db; }
-        .exam-card.igcse { --board-theme-color: #dc2626; }
-        .exam-card.maths { --board-theme-color: #FFDA03; }
-        .exam-card.custom { --board-theme-color: #000000; }
+        .exam-card.ib { --board-theme-color: #1a56db; --board-theme-muted: #9eb6ef; }
+        .exam-card.igcse { --board-theme-color: #dc2626; --board-theme-muted: #f1a5a5; }
+        .exam-card.maths { --board-theme-color: #FFDA03; --board-theme-muted: #ffe866; }
+        .exam-card.custom { --board-theme-color: #000000; --board-theme-muted: #999999; }
+
+        /* Extra Time Badge Styling */
+        .extra-badge {
+            margin-left: 8px;
+            font-size: 0.85em;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        /* Targeted styling for Extra Time Row components */
+        .time-row[data-key="extratime"].active-extra-primary .label,
+        .time-row[data-key="extratime"].active-extra-secondary .label {
+            background-color: transparent !important;
+            color: inherit !important;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .time-row[data-key="extratime"].active-extra-primary .extra-label-text,
+        .time-row[data-key="extratime"].active-extra-secondary .extra-label-text {
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: -6px;
+        }
+
+        /* Primary active state (no conflict) */
+        .time-row[data-key="extratime"].active-extra-primary .extra-label-text,
+        .time-row[data-key="extratime"].active-extra-primary .extra-badge {
+            background-color: var(--board-theme-color) !important;
+            color: var(--card-base-bg) !important;
+        }
+        
+        /* Exception: Maths primary text color */
+        .exam-card.maths .time-row[data-key="extratime"].active-extra-primary .extra-label-text,
+        .exam-card.maths .time-row[data-key="extratime"].active-extra-primary .extra-badge {
+            color: #000 !important;
+        }
+
+        /* Secondary active state (conflict resolution) */
+        .time-row[data-key="extratime"].active-extra-secondary .extra-label-text,
+        .time-row[data-key="extratime"].active-extra-secondary .extra-badge {
+            background-color: var(--board-theme-muted) !important;
+            color: #000 !important; /* High contrast against muted backgrounds */
+        }
 
         /* Unified Time Row Highlights (For ALL boards EXCEPT Maths) */
         #cards-grid .exam-card:not(.maths) .time-row[class*="highlighted-"],
@@ -1297,7 +1343,22 @@
             }
 
             if (extraMin > 0) {
-                times.push({ key: 'extratime', label: 'EXTRA TIME', time: endMin + extraMin });
+                const extraEndMin = endMin + extraMin;
+                times.push({ key: 'extratime', label: 'EXTRA TIME', time: extraEndMin });
+                
+                // Generate Extra Time Warnings (Hidden from UI)
+                let extraWarnings = customWarnings && customWarnings.length > 0 ? customWarnings : [5];
+                extraWarnings.forEach(w => {
+                    if (extraMin > w) {
+                        times.push({ 
+                            key: `extra-${w}min`, 
+                            label: `${w} MIN`, 
+                            time: extraEndMin - w,
+                            isExtraWarning: true,
+                            hiddenFromUI: true
+                        });
+                    }
+                });
             }
 
             // Sort times chronologically
@@ -1435,13 +1496,23 @@
 							}
 						});
 					} else {
+                        if (t.hiddenFromUI) return; // Skip rendering hidden milestones
+                        
 						const row = document.createElement('div');
 						row.className = 'time-row';
 						row.dataset.key = t.key;
-						row.innerHTML = `
-							<span class="label">${t.label}</span>
-							<span class="value">${minutesToTimeStr(t.time)}</span>
-						`;
+                        
+                        if (t.key === 'extratime') {
+                            row.innerHTML = `
+                                <span class="label"><span class="extra-label-text">${t.label}</span><span class="extra-badge"></span></span>
+                                <span class="value">${minutesToTimeStr(t.time)}</span>
+                            `;
+                        } else {
+                            row.innerHTML = `
+                                <span class="label">${t.label}</span>
+                                <span class="value">${minutesToTimeStr(t.time)}</span>
+                            `;
+                        }
 						rowsContainer.appendChild(row);
 					}
 				});
@@ -1578,10 +1649,10 @@
                 const rows = rowsContainer.children;
 
                 let currentIdx = -1;
-                let activeMilestoneIdx = -1;
+                let activeMilestones = [];
                 timer.times.forEach((t, i) => {
                     if (currentMin >= t.time) currentIdx = i;
-                    if (currentMin === t.time) activeMilestoneIdx = i;
+                    if (currentMin === t.time) activeMilestones.push(t);
                 });
 
                 const statusEl = timer.el.querySelector('.countdown-status');
@@ -1607,14 +1678,55 @@
                     }
                 }
 
-                timer.times.forEach((t, i) => {
-                    if (rows[i]) rows[i].classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom');
+                // Cleanup all highlights
+                Array.from(rows).forEach(row => {
+                    row.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-primary', 'active-extra-secondary');
+                    const badge = row.querySelector('.extra-badge');
+                    if (badge) {
+                        badge.style.display = 'none';
+                        badge.textContent = '';
+                    }
                 });
                 countdownEl.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom');
 
-                if (activeMilestoneIdx >= 0) {
-                    if (rows[activeMilestoneIdx]) {
-                        rows[activeMilestoneIdx].classList.add(highlightClass);
+                // Apply highlights based on active milestones
+                if (activeMilestones.length > 0) {
+                    const regularMilestones = activeMilestones.filter(t => !t.isExtraWarning);
+                    const extraMilestones = activeMilestones.filter(t => t.isExtraWarning);
+                    
+                    const extraRow = timer.el.querySelector('.time-row[data-key="extratime"]');
+
+                    // If there's a conflict (both regular and extra warnings)
+                    if (regularMilestones.length > 0 && extraMilestones.length > 0) {
+                        // Highlight regular
+                        const regRow = timer.el.querySelector(`[data-key="${regularMilestones[0].key}"]`);
+                        if (regRow) regRow.classList.add(highlightClass);
+                        
+                        // Highlight extra (secondary muted)
+                        if (extraRow) {
+                            extraRow.classList.add('active-extra-secondary');
+                            const badge = extraRow.querySelector('.extra-badge');
+                            if (badge) {
+                                badge.textContent = extraMilestones[0].label;
+                                badge.style.display = 'inline-block';
+                            }
+                        }
+                    } 
+                    // If only extra warnings
+                    else if (extraMilestones.length > 0) {
+                        if (extraRow) {
+                            extraRow.classList.add('active-extra-primary');
+                            const badge = extraRow.querySelector('.extra-badge');
+                            if (badge) {
+                                badge.textContent = extraMilestones[0].label;
+                                badge.style.display = 'inline-block';
+                            }
+                        }
+                    }
+                    // If only regular warnings
+                    else if (regularMilestones.length > 0) {
+                        const regRow = timer.el.querySelector(`[data-key="${regularMilestones[0].key}"]`);
+                        if (regRow) regRow.classList.add(highlightClass);
                     }
                 } else if (currentIdx >= 0 && currentSec < finalSec) {
                     countdownEl.classList.add(highlightClass);
