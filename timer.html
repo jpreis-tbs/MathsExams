@@ -454,23 +454,17 @@
         }
 
         /* Unified Time Row Highlights (For ALL boards EXCEPT Maths) */
-        #cards-grid .exam-card:not(.maths) .time-row .label[class*="highlighted-"],
-        #cards-grid .exam-card:not(.maths) .start-edit-row .label[class*="highlighted-"] {
+        #cards-grid .exam-card:not(.maths) .time-row[class*="highlighted-"],
+        #cards-grid .exam-card:not(.maths) .start-edit-row[class*="highlighted-"] {
             background-color: var(--board-theme-color) !important;
             color: var(--card-base-bg) !important;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-left: -8px;
         }
 
         /* Maths Exception: Warning row highlight stays Yellow Background, Black Font */
-        #cards-grid .exam-card.maths .time-row .label.highlighted-maths,
-        #cards-grid .exam-card.maths .start-edit-row .label.highlighted-maths {
+        #cards-grid .exam-card.maths .time-row.highlighted-maths,
+        #cards-grid .exam-card.maths .start-edit-row.highlighted-maths {
             background-color: #FFDA03 !important;
             color: #000000 !important;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-left: -8px;
         }
         
         /* Extra Time Warning Shrink-Wrap Highlights (Distinct Hue / Muted Tone) */
@@ -1727,10 +1721,13 @@
                     // Remove legacy row highlights just in case
                     row.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-warning');
                     
-                    // Target the label specifically for cleanup
+                    // Remove regular highlights from the full row
+                    row.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom');
+
+                    // Remove extra time highlights from the label
                     const label = row.querySelector('.label');
                     if (label) {
-                        label.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-warning', 'active-extra-indicator');
+                        label.classList.remove('active-extra-warning', 'active-extra-indicator');
                     }
                     
                     // Ensure the extra badge stays hidden forever
@@ -1750,12 +1747,7 @@
                     if (regularMilestones.length > 0) {
                         const regRow = timer.el.querySelector(`[data-key="${regularMilestones[0].key}"]`);
                         if (regRow) {
-                            const label = regRow.querySelector('.label');
-                            if (label) {
-                                label.classList.add(highlightClass);
-                            } else {
-                                regRow.classList.add(highlightClass); // Fallback
-                            }
+                            regRow.classList.add(highlightClass); // Apply to the full row
                         }
                     }
 
