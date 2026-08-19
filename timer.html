@@ -473,31 +473,35 @@
             margin-left: -8px;
         }
         
-        /* Extra Time Warning Shrink-Wrap Highlights */
-        .exam-card.ib .time-row .label.active-extra-warning {
-            background-color: #1a56db !important;
-            color: #fff !important;
+        /* Extra Time Warning Shrink-Wrap Highlights (Distinct Hue / Muted Tone) */
+        .exam-card.ib .time-row .label.active-extra-warning,
+        .exam-card.ib .time-row .label.active-extra-indicator {
+            background-color: #9eb6ef !important;
+            color: #000 !important;
             padding: 2px 8px;
             border-radius: 4px;
             margin-left: -8px;
         }
-        .exam-card.igcse .time-row .label.active-extra-warning {
-            background-color: #dc2626 !important;
-            color: #fff !important;
+        .exam-card.igcse .time-row .label.active-extra-warning,
+        .exam-card.igcse .time-row .label.active-extra-indicator {
+            background-color: #f1a5a5 !important;
+            color: #000 !important;
             padding: 2px 8px;
             border-radius: 4px;
             margin-left: -8px;
         }
-        .exam-card.maths .time-row .label.active-extra-warning {
-            background-color: #000 !important;
-            color: #FFDA03 !important;
+        .exam-card.maths .time-row .label.active-extra-warning,
+        .exam-card.maths .time-row .label.active-extra-indicator {
+            background-color: #ffe866 !important;
+            color: #000 !important;
             padding: 2px 8px;
             border-radius: 4px;
             margin-left: -8px;
         }
-        .exam-card.custom .time-row .label.active-extra-warning {
-            background-color: #000 !important;
-            color: #fff !important;
+        .exam-card.custom .time-row .label.active-extra-warning,
+        .exam-card.custom .time-row .label.active-extra-indicator {
+            background-color: #999999 !important;
+            color: #000 !important;
             padding: 2px 8px;
             border-radius: 4px;
             margin-left: -8px;
@@ -1726,7 +1730,7 @@
                     // Target the label specifically for cleanup
                     const label = row.querySelector('.label');
                     if (label) {
-                        label.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-warning');
+                        label.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-warning', 'active-extra-indicator');
                     }
                     
                     // Ensure the extra badge stays hidden forever
@@ -1765,6 +1769,15 @@
                                 label.classList.add('active-extra-warning');
                             } else {
                                 matchingRegRow.classList.add('active-extra-warning'); // Fallback
+                            }
+                        }
+
+                        // Also highlight the EXTRA TIME row to clarify the warning's context
+                        const extraTimeRow = timer.el.querySelector('[data-key="extratime"]');
+                        if (extraTimeRow) {
+                            const extraLabel = extraTimeRow.querySelector('.label');
+                            if (extraLabel) {
+                                extraLabel.classList.add('active-extra-indicator');
                             }
                         }
                     }
