@@ -454,17 +454,53 @@
         }
 
         /* Unified Time Row Highlights (For ALL boards EXCEPT Maths) */
-        #cards-grid .exam-card:not(.maths) .time-row[class*="highlighted-"],
-        #cards-grid .exam-card:not(.maths) .start-edit-row[class*="highlighted-"] {
+        #cards-grid .exam-card:not(.maths) .time-row .label[class*="highlighted-"],
+        #cards-grid .exam-card:not(.maths) .start-edit-row .label[class*="highlighted-"] {
             background-color: var(--board-theme-color) !important;
             color: var(--card-base-bg) !important;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: -8px;
         }
 
         /* Maths Exception: Warning row highlight stays Yellow Background, Black Font */
-        #cards-grid .exam-card.maths .time-row.highlighted-maths,
-        #cards-grid .exam-card.maths .start-edit-row.highlighted-maths {
+        #cards-grid .exam-card.maths .time-row .label.highlighted-maths,
+        #cards-grid .exam-card.maths .start-edit-row .label.highlighted-maths {
             background-color: #FFDA03 !important;
             color: #000000 !important;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: -8px;
+        }
+        
+        /* Extra Time Warning Shrink-Wrap Highlights */
+        .exam-card.ib .time-row .label.active-extra-warning {
+            background-color: #1a56db !important;
+            color: #fff !important;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: -8px;
+        }
+        .exam-card.igcse .time-row .label.active-extra-warning {
+            background-color: #dc2626 !important;
+            color: #fff !important;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: -8px;
+        }
+        .exam-card.maths .time-row .label.active-extra-warning {
+            background-color: #000 !important;
+            color: #FFDA03 !important;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: -8px;
+        }
+        .exam-card.custom .time-row .label.active-extra-warning {
+            background-color: #000 !important;
+            color: #fff !important;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: -8px;
         }
 
         .countdown-section {
@@ -1353,7 +1389,7 @@
 
                 // Generate Extra Time Warnings (Hidden from UI)
                 generatedRegularWarnings.forEach(w => {
-                    if (extraMin > w) {
+                    if (extraMin >= w) {
                         times.push({ 
                             key: `extra-${w}min`, 
                             label: `${w} MIN`, 
@@ -1688,7 +1724,7 @@
                     row.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-warning');
                     
                     // Target the label specifically for cleanup
-                    const label = row.querySelector('.time-label');
+                    const label = row.querySelector('.label');
                     if (label) {
                         label.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-warning');
                     }
@@ -1710,7 +1746,7 @@
                     if (regularMilestones.length > 0) {
                         const regRow = timer.el.querySelector(`[data-key="${regularMilestones[0].key}"]`);
                         if (regRow) {
-                            const label = regRow.querySelector('.time-label');
+                            const label = regRow.querySelector('.label');
                             if (label) {
                                 label.classList.add(highlightClass);
                             } else {
@@ -1724,7 +1760,7 @@
                         const extraKey = extraMilestones[0].key.replace('extra-', '');
                         const matchingRegRow = timer.el.querySelector(`[data-key="${extraKey}"]`);
                         if (matchingRegRow) {
-                            const label = matchingRegRow.querySelector('.time-label');
+                            const label = matchingRegRow.querySelector('.label');
                             if (label) {
                                 label.classList.add('active-extra-warning');
                             } else {
