@@ -1684,11 +1684,19 @@
 
                 // Cleanup all highlights
                 Array.from(rows).forEach(row => {
-                    row.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-primary', 'active-extra-secondary', 'active-extra-warning');
+                    // Remove legacy row highlights just in case
+                    row.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-warning');
+                    
+                    // Target the label specifically for cleanup
+                    const label = row.querySelector('.time-label');
+                    if (label) {
+                        label.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-warning');
+                    }
+                    
+                    // Ensure the extra badge stays hidden forever
                     const badge = row.querySelector('.extra-badge');
                     if (badge) {
                         badge.style.display = 'none';
-                        badge.textContent = '';
                     }
                 });
                 countdownEl.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom');
@@ -1698,49 +1706,31 @@
                     const regularMilestones = activeMilestones.filter(t => !t.isExtraWarning);
                     const extraMilestones = activeMilestones.filter(t => t.isExtraWarning);
                     
-                    const extraRow = timer.el.querySelector('.time-row[data-key="extratime"]');
-
-                    // If there's a conflict (both regular and extra warnings)
-                    if (regularMilestones.length > 0 && extraMilestones.length > 0) {
-                        // Highlight regular
+                    // Process Regular Milestones Independently
+                    if (regularMilestones.length > 0) {
                         const regRow = timer.el.querySelector(`[data-key="${regularMilestones[0].key}"]`);
-                        if (regRow) regRow.classList.add(highlightClass);
-                        
-                        // Dynamically find and highlight the matching regular row for the extra warning
-                        const extraKey = extraMilestones[0].key.replace('extra-', '');
-                        const matchingRegRow = timer.el.querySelector(`[data-key="${extraKey}"]`);
-                        if (matchingRegRow) matchingRegRow.classList.add('active-extra-warning');
-
-                        // Highlight extra (secondary muted)
-                        if (extraRow) {
-                            extraRow.classList.add('active-extra-secondary');
-                            const badge = extraRow.querySelector('.extra-badge');
-                            if (badge) {
-                                badge.textContent = extraMilestones[0].label;
-                                badge.style.display = 'inline-block';
-                            }
-                        }
-                    } 
-                    // If only extra warnings
-                    else if (extraMilestones.length > 0) {
-                        // Dynamically find and highlight the matching regular row for the extra warning
-                        const extraKey = extraMilestones[0].key.replace('extra-', '');
-                        const matchingRegRow = timer.el.querySelector(`[data-key="${extraKey}"]`);
-                        if (matchingRegRow) matchingRegRow.classList.add('active-extra-warning');
-
-                        if (extraRow) {
-                            extraRow.classList.add('active-extra-primary');
-                            const badge = extraRow.querySelector('.extra-badge');
-                            if (badge) {
-                                badge.textContent = extraMilestones[0].label;
-                                badge.style.display = 'inline-block';
+                        if (regRow) {
+                            const label = regRow.querySelector('.time-label');
+                            if (label) {
+                                label.classList.add(highlightClass);
+                            } else {
+                                regRow.classList.add(highlightClass); // Fallback
                             }
                         }
                     }
-                    // If only regular warnings
-                    else if (regularMilestones.length > 0) {
-                        const regRow = timer.el.querySelector(`[data-key="${regularMilestones[0].key}"]`);
-                        if (regRow) regRow.classList.add(highlightClass);
+
+                    // Process Extra Time Milestones Independently
+                    if (extraMilestones.length > 0) {
+                        const extraKey = extraMilestones[0].key.replace('extra-', '');
+                        const matchingRegRow = timer.el.querySelector(`[data-key="${extraKey}"]`);
+                        if (matchingRegRow) {
+                            const label = matchingRegRow.querySelector('.time-label');
+                            if (label) {
+                                label.classList.add('active-extra-warning');
+                            } else {
+                                matchingRegRow.classList.add('active-extra-warning'); // Fallback
+                            }
+                        }
                     }
                 } else if (currentIdx >= 0 && currentSec < finalSec) {
                     countdownEl.classList.add(highlightClass);
