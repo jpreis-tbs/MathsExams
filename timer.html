@@ -181,8 +181,8 @@
             
             /* --- NEW PROPERTIES FOR RESIZING & SCROLLING --- */
             resize: vertical;
-            overflow-y: auto;
-            min-height: 60px; /* Reduced minimum bound */
+            overflow: hidden; /* Changed from auto to hide the date when shrunk */
+            min-height: 60px; 
             max-height: 60vh;
         }
         
@@ -190,6 +190,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+
+        .current-date {
+            font-size: 0.85rem;
+            color: #777;
+            margin-top: 4px;
+            font-weight: 500;
+            white-space: pre; /* Ensures the spaces around the | character are respected */
         }
 
         .header-add-btn {
@@ -1145,6 +1153,7 @@
                 <div class="header-center">
                     <div class="current-time-label">Current time</div>
                     <div class="current-time" id="current-time">--:--:--</div>
+                    <div class="current-date" id="current-date"></div>
                 </div>
 
                 <div class="next-announcement-block">
@@ -1680,6 +1689,24 @@
             const now = new Date();
             document.getElementById('current-time').textContent =
                 `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+            // --- NEW DATE LOGIC ---
+            const dateEl = document.getElementById('current-date');
+            if (dateEl) {
+                const day = now.getDate();
+                const monthName = now.toLocaleString('en-GB', { month: 'long' });
+                const year = now.getFullYear();
+                
+                const dd = String(day).padStart(2, '0');
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                
+                let suffix = 'th';
+                if (day % 10 === 1 && day !== 11) suffix = 'st';
+                else if (day % 10 === 2 && day !== 12) suffix = 'nd';
+                else if (day % 10 === 3 && day !== 13) suffix = 'rd';
+                
+                dateEl.textContent = `${day}${suffix} of ${monthName} ${year}   |   ${dd}/${mm}/${year}`;
+            }
 
             const currentMin = nowMinutes();
             const currentSec = nowSeconds();
