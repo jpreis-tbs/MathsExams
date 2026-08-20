@@ -169,21 +169,21 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            /* Added 15px left/right padding so the scrollbar doesn't overlap the right button */
-            padding: 15px 15px; 
+            /* Reduced padding to shrink standard size */
+            padding: 10px 15px; 
             background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(8px);
             border-bottom: 1px solid #eaeaea;
-            margin-bottom: 36px;
+            margin-bottom: 24px; /* Reduced from 36px */
             position: sticky;
             top: 0;
             z-index: 100;
             
             /* --- NEW PROPERTIES FOR RESIZING & SCROLLING --- */
-            resize: vertical;      /* Allows the user to drag the bottom edge to resize */
-            overflow-y: auto;      /* Introduces a scrollbar if the header gets too small for its content */
-            min-height: 90px;      /* Prevents the user from crushing it so small the buttons break */
-            max-height: 60vh;      /* Prevents dragging the header past 60% of the screen height */
+            resize: vertical;
+            overflow-y: auto;
+            min-height: 60px; /* Reduced minimum bound */
+            max-height: 60vh;
         }
         
         .header-center {
@@ -192,13 +192,12 @@
             align-items: center;
         }
 
-        /* New Add Timer buttons restricted to header size */
         .header-add-btn {
-            height: 50px;
-            padding: 0 24px;
+            height: 44px; /* Slightly smaller button */
+            padding: 0 20px;
             background-color: #000;
             color: #fff;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 600;
             border: none;
             border-radius: 8px;
@@ -215,26 +214,40 @@
         }
 
         .current-time-label {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             color: #777;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .current-time {
-            font-size: 4rem;
+            font-size: 2.4rem; /* Reduced from 4rem */
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             letter-spacing: 2px;
         }
-		#next-announcement {
-            font-size: 1.1rem;
+
+        .next-announcement-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.9;
+        }
+
+        .announcement-label {
+            font-size: 0.9rem;
             color: #777;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            text-align: center;
-            font-weight: 500;
-            margin-top: -5px; 
-            margin-bottom: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .announcement-time {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #333;
+            font-variant-numeric: tabular-nums;
         }
 
         /* Card grid */
@@ -1000,7 +1013,10 @@
             }
 
             .current-time {
-                font-size: 3rem;
+                font-size: 1.8rem;
+            }
+            .announcement-time {
+                font-size: 1.1rem;
             }
 
             .cards-grid {
@@ -1120,11 +1136,22 @@
     <div id="timer-view">
             <div class="timer-header">
                 <button class="header-add-btn" onclick="showSetup()">+ Add Timer</button>
+                
+                <div class="next-announcement-block">
+                    <div class="announcement-label">NEXT ANNOUNCEMENT</div>
+                    <div class="announcement-time">---</div>
+                </div>
+
                 <div class="header-center">
                     <div class="current-time-label">Current time</div>
                     <div class="current-time" id="current-time">--:--:--</div>
-                    <div id="next-announcement">Next announcement: ---</div>
                 </div>
+
+                <div class="next-announcement-block">
+                    <div class="announcement-label">NEXT ANNOUNCEMENT</div>
+                    <div class="announcement-time">---</div>
+                </div>
+
                 <button class="header-add-btn" onclick="showSetup()">+ Add Timer</button>
             </div>
             <div class="cards-grid" id="cards-grid"></div>
@@ -1135,7 +1162,7 @@
         </div>
 
     <!-- GitHub link -->
-    <a class="github-link" href="https://github.com/oscarneiva" target="_blank" rel="noopener noreferrer" aria-label="GitHub profile" title="GitHub">
+    <a class="github-link" href="https://github.com/jpreis-tbs/MathsExams" target="_blank" rel="noopener noreferrer" aria-label="GitHub profile" title="GitHub">
         <svg viewBox="0 0 16 16" aria-hidden="true">
             <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
         </svg>
@@ -1668,14 +1695,14 @@
                 }
             });
 
-            const globalNextAnnEl = document.getElementById('next-announcement');
-            if (globalNextAnnEl) {
+            const announcementTimeEls = document.querySelectorAll('.announcement-time');
+            announcementTimeEls.forEach(el => {
                 if (nextGlobalMilestoneTime !== null) {
-                    globalNextAnnEl.textContent = `Next announcement: ${minutesToTimeStr(nextGlobalMilestoneTime)}`;
+                    el.textContent = minutesToTimeStr(nextGlobalMilestoneTime);
                 } else {
-                    globalNextAnnEl.textContent = `Next announcement: ---`;
+                    el.textContent = `---`;
                 }
-            }
+            });
 
             timers.forEach(timer => {
                 let highlightClass = 'highlighted-igcse'; 
