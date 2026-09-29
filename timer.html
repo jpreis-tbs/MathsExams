@@ -1878,29 +1878,44 @@
             const currentSec = nowSeconds();
 
             // Calculate global next announcement across all timers
-            let nextGlobalMilestone = null;
+            let nextGlobalMilestoneTime = null;
+            let isNextGlobalExtraWarning = false;
+
             timers.forEach(timer => {
-                const nextMilestone = timer.times.find(t => currentMin < t.time);
+                // Ensure we only queue actual warning announcements (keys ending in 'min'), ignoring end/start times.
+                // Using (currentSec / 60) ensures exact precision matching instead of minute-rounding blocks.
+                const nextMilestone = timer.times.find(t => (currentSec / 60) < t.time && t.key.endsWith('min'));
                 if (nextMilestone) {
-                    if (nextGlobalMilestone === null || nextMilestone.time < nextGlobalMilestone.time) {
-                        nextGlobalMilestone = nextMilestone;
+                    if (nextGlobalMilestoneTime === null || nextMilestone.time < nextGlobalMilestoneTime) {
+                        nextGlobalMilestoneTime = nextMilestone.time;
+                        isNextGlobalExtraWarning = !!nextMilestone.isExtraWarning;
+                    } else if (nextMilestone.time === nextGlobalMilestoneTime) {
+                        if (nextMilestone.isExtraWarning) {
+                            isNextGlobalExtraWarning = true;
+                        }
                     }
                 }
             });
 
+            // Toggle lighter-hue highlight on Next Announcement header blocks
             const announcementBlocks = document.querySelectorAll('.next-announcement-block');
             announcementBlocks.forEach(block => {
-                const timeEl = block.querySelector('.announcement-time');
-                if (nextGlobalMilestone !== null) {
-                    timeEl.textContent = minutesToTimeStr(nextGlobalMilestone.time);
-                    if (nextGlobalMilestone.isExtraWarning) {
-                        block.classList.add('is-extra-warning');
-                    } else {
-                        block.classList.remove('is-extra-warning');
-                    }
+                const labelEl = block.querySelector('.announcement-label');
+                if (nextGlobalMilestoneTime !== null && isNextGlobalExtraWarning) {
+                    block.classList.add('is-extra-warning');
+                    if (labelEl) labelEl.textContent = "EXTRA TIME WARNING";
                 } else {
-                    timeEl.textContent = `---`;
                     block.classList.remove('is-extra-warning');
+                    if (labelEl) labelEl.textContent = "NEXT ANNOUNCEMENT";
+                }
+            });
+
+            const announcementTimeEls = document.querySelectorAll('.announcement-time');
+            announcementTimeEls.forEach(el => {
+                if (nextGlobalMilestoneTime !== null) {
+                    el.textContent = minutesToTimeStr(nextGlobalMilestoneTime);
+                } else {
+                    el.textContent = `---`;
                 }
             });
 
@@ -1970,15 +1985,15 @@
                     const regularMilestones = activeMilestones.filter(t => !t.isExtraWarning);
                     const extraMilestones = activeMilestones.filter(t => t.isExtraWarning);
                     
-                    // Process Regular Milestones Independently
+                    // Process Regular Milestones (Full Row Highlight)
                     if (regularMilestones.length > 0) {
                         const regRow = timer.el.querySelector(`[data-key="${regularMilestones[0].key}"]`);
                         if (regRow) {
-                            regRow.classList.add(highlightClass); // Apply to the full row
+                            regRow.classList.add(highlightClass);
                         }
                     }
 
-                    // Process Extra Time Milestones Independently
+                    // Process Extra Time Milestones (Lighter-Hue Shrink-Wrap Highlight)
                     if (extraMilestones.length > 0) {
                         const extraKey = extraMilestones[0].key.replace('extra-', '');
                         const matchingRegRow = timer.el.querySelector(`[data-key="${extraKey}"]`);
@@ -1987,11 +2002,11 @@
                             if (label) {
                                 label.classList.add('active-extra-warning');
                             } else {
-                                matchingRegRow.classList.add('active-extra-warning'); // Fallback
+                                matchingRegRow.classList.add('active-extra-warning');
                             }
                         }
 
-                        // Also highlight the EXTRA TIME row to clarify the warning's context
+                        // Highlight EXTRA TIME row label as warning context indicator
                         const extraTimeRow = timer.el.querySelector('[data-key="extratime"]');
                         if (extraTimeRow) {
                             const extraLabel = extraTimeRow.querySelector('.label');
