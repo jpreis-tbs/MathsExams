@@ -256,6 +256,19 @@
             font-weight: 700;
             color: #333;
             font-variant-numeric: tabular-nums;
+            transition: color 0.3s, background-color 0.3s;
+        }
+
+        /* Distinct Hue for Next Announcement when it's an Extra Time Warning */
+        .next-announcement-block.is-extra-warning .announcement-time {
+            color: #d97706 !important;
+            background-color: #fef3c7;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+
+        .next-announcement-block.is-extra-warning .announcement-label {
+            color: #d97706 !important;
         }
 
         /* Card grid */
@@ -864,23 +877,20 @@
 
     /* 1. Active Warning Inversion */
     .exam-card.ib .time-row.active-warning-invert,
-    .exam-card.ib .start-edit-row.active-warning-invert,
-    .exam-card.ib .time-row.active-extra-warning {
+    .exam-card.ib .start-edit-row.active-warning-invert {
         background-color: #1a56db !important;
         color: #fff !important;
         border-radius: 6px;
     }
     .exam-card.igcse .time-row.active-warning-invert,
-    .exam-card.igcse .start-edit-row.active-warning-invert,
-    .exam-card.igcse .time-row.active-extra-warning {
+    .exam-card.igcse .start-edit-row.active-warning-invert {
         background-color: #dc2626 !important;
         color: #fff !important;
         border-radius: 6px;
     }
 
     .exam-card.maths .time-row.active-warning-invert,
-    .exam-card.maths .start-edit-row.active-warning-invert,
-    .exam-card.maths .time-row.active-extra-warning {
+    .exam-card.maths .start-edit-row.active-warning-invert {
         background-color: #FFDA03 !important;
         color: #000 !important;
         border-radius: 6px;
@@ -888,8 +898,7 @@
 	
 	/* Override for active warnings (if applicable) */
 	.exam-card.custom .time-row.active-warning-invert,
-	.exam-card.custom .start-edit-row.active-warning-invert,
-	.exam-card.custom .time-row.active-extra-warning {
+	.exam-card.custom .start-edit-row.active-warning-invert {
 		background-color: #000000 !important;
 		color: #ffffff !important;
 		border-radius: 6px;
@@ -950,7 +959,7 @@
     
     .exam-card.maths .time-row.active-warning-invert,
     .exam-card.maths .start-edit-row.active-warning-invert,
-    .exam-card.maths .time-row.active-extra-warning {
+    {
         background-color: #FFDA03 !important;
         color: #000 !important;
         border-radius: 6px;
@@ -1869,22 +1878,29 @@
             const currentSec = nowSeconds();
 
             // Calculate global next announcement across all timers
-            let nextGlobalMilestoneTime = null;
+            let nextGlobalMilestone = null;
             timers.forEach(timer => {
                 const nextMilestone = timer.times.find(t => currentMin < t.time);
                 if (nextMilestone) {
-                    if (nextGlobalMilestoneTime === null || nextMilestone.time < nextGlobalMilestoneTime) {
-                        nextGlobalMilestoneTime = nextMilestone.time;
+                    if (nextGlobalMilestone === null || nextMilestone.time < nextGlobalMilestone.time) {
+                        nextGlobalMilestone = nextMilestone;
                     }
                 }
             });
 
-            const announcementTimeEls = document.querySelectorAll('.announcement-time');
-            announcementTimeEls.forEach(el => {
-                if (nextGlobalMilestoneTime !== null) {
-                    el.textContent = minutesToTimeStr(nextGlobalMilestoneTime);
+            const announcementBlocks = document.querySelectorAll('.next-announcement-block');
+            announcementBlocks.forEach(block => {
+                const timeEl = block.querySelector('.announcement-time');
+                if (nextGlobalMilestone !== null) {
+                    timeEl.textContent = minutesToTimeStr(nextGlobalMilestone.time);
+                    if (nextGlobalMilestone.isExtraWarning) {
+                        block.classList.add('is-extra-warning');
+                    } else {
+                        block.classList.remove('is-extra-warning');
+                    }
                 } else {
-                    el.textContent = `---`;
+                    timeEl.textContent = `---`;
+                    block.classList.remove('is-extra-warning');
                 }
             });
 
