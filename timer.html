@@ -1440,10 +1440,13 @@
             // Apply custom warnings if provided, otherwise default to 5 min
             if (customWarnings && customWarnings.length > 0) {
                 customWarnings.forEach(w => {
-                    if (durationMin > w) {
-                        times.push({ key: `${w}min`, label: `${w} MIN`, time: endMin - w });
+                    const warnMin = parseInt(w);
+                    if (!isNaN(warnMin) && durationMin > warnMin) {
+                        times.push({ key: `${warnMin}min`, label: `${warnMin} MIN`, time: endMin - warnMin });
                     }
                 });
+            } else if (durationMin > 5) {
+                times.push({ key: '5min', label: '5 MIN', time: endMin - 5 });
             }
 
             times.push({ key: 'end', label: '<span class="end-label-wrapper"><span>End</span><span class="badge-regular" style="display: none;">Regular time finished</span></span>', time: endMin });
