@@ -983,6 +983,12 @@
         color: #000 !important;
     }
 
+        #extra-time-value:disabled, #extra-time-type:disabled {
+            opacity: 0.4;
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
         /* Responsive: small desktops / large tablets -> 3 columns */
         @media (max-width: 1100px) {
             .exam-card {
@@ -1123,17 +1129,9 @@
                 
                 <div class="form-group" style="padding-top: 10px; border-top: 1px solid #eee;">
                     <label style="margin-bottom: 8px; font-weight: 600;">Warnings</label>
-                    <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="checkbox" id="warning-30min">
-                            <label for="warning-30min" style="margin-bottom: 0; font-weight: normal;">30 min warning</label>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="checkbox" id="warning-5min" checked>
-                            <label for="warning-5min" style="margin-bottom: 0; font-weight: normal;">5 min warning</label>
-                        </div>
-                        <div id="standard-warnings-display" style="font-size: 0.85rem; color: #777; margin-top: 4px;"></div>
-                    </div>
+                    <div id="dynamic-warnings-container" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; text-align: left; align-items: flex-start;">
+					<!-- Checkboxes injected dynamically by JS -->
+				</div>
                     <button type="button" id="btn-toggle-warnings" class="btn-bottom" style="width: 100%; margin-bottom: 8px;">+ Add extra warning</button>
                     <div id="custom-warnings-container" style="display: none; margin-top: 8px;">
                         <label for="custom-warning-times">Extra Warnings (mins before end, comma separated)</label>
@@ -1354,9 +1352,6 @@
         const moreOptionsContainer = document.getElementById('more-options-container');
         const enableReadingTimeCb = document.getElementById('enable-reading-time');
         const readingDurationInput = document.getElementById('reading-duration');
-        const warning30MinCb = document.getElementById('warning-30min');
-        const warning5MinCb = document.getElementById('warning-5min');
-        const standardWarningsDisplay = document.getElementById('standard-warnings-display');
         const enableExtraTimeCb = document.getElementById('enable-extra-time');
 
         let editingTimerId = null;
@@ -1431,11 +1426,6 @@
                         times.push({ key: `${w}min`, label: `${w} MIN`, time: endMin - w });
                     }
                 });
-            } 
-            
-            // Guarantee a preset 5-minute warning for Custom timers (and any exam > 5 mins)
-            if (durationMin > 5 && !times.find(t => t.key === '5min')) {
-                times.push({ key: '5min', label: '5 MIN', time: endMin - 5 });
             }
 
             times.push({ key: 'end', label: '<span class="end-label-wrapper"><span>End</span><span class="badge-regular" style="display: none;">Regular time finished</span></span>', time: endMin });
@@ -1474,6 +1464,42 @@
 
             return times;
         }
+		
+		function renderWarningCheckboxes(board, activeWarnings = null) {
+            const container = document.getElementById('dynamic-warnings-container');
+            container.innerHTML = '';
+            
+            let standardWarnings = [];
+            if (examPresets[board] && examPresets[board].customWarnings) {
+                standardWarnings = [...examPresets[board].customWarnings];
+            } else if (board.startsWith('ib-') || board === 'IB') {
+                standardWarnings = [30, 5];
+            } else {
+                standardWarnings = [5];
+            }
+            
+            let allWarnings = [...standardWarnings];
+            if (activeWarnings) {
+                allWarnings = [...new Set([...allWarnings, ...activeWarnings])];
+            }
+            allWarnings.sort((a, b) => b - a);
+
+            allWarnings.forEach(w => {
+                const isStandard = standardWarnings.includes(w);
+                const isChecked = activeWarnings ? activeWarnings.includes(w) : isStandard;
+                
+                const div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.alignItems = 'center';
+                div.style.gap = '8px';
+                div.style.width = '100%';
+                div.innerHTML = `
+                    <input type="checkbox" class="warning-checkbox" value="${w}" id="warning-${w}" ${isChecked ? 'checked' : ''}>
+                    <label for="warning-${w}" style="margin-bottom: 0; font-weight: normal;">${w} min warning ${isStandard ? '' : '(Custom)'}</label>
+                `;
+                container.appendChild(div);
+            });
+        }
 
         function editTimer(timer) {
             editingTimerId = timer.id;
@@ -1494,9 +1520,6 @@
                 readingDurationInput.disabled = true;
                 readingDurationInput.value = 0;
             }
-
-            warning30MinCb.checked = timer.customWarnings && timer.customWarnings.includes(30);
-            warning5MinCb.checked = timer.customWarnings && timer.customWarnings.includes(5);
 
             const extraCustom = timer.customWarnings ? timer.customWarnings.filter(w => w !== 30 && w !== 5) : [];
             const warningsContainer = document.getElementById('custom-warnings-container');
@@ -2061,10 +2084,11 @@
                 if (existing) customBoardName = existing.customBoardName;
             }
 
-            // Resolve Custom Warnings from checkboxes and input
+            // Resolve Custom Warnings from dynamic checkboxes and input
             let customWarnings = [];
-            if (warning30MinCb.checked) customWarnings.push(30);
-            if (warning5MinCb.checked) customWarnings.push(5);
+            document.querySelectorAll('.warning-checkbox:checked').forEach(cb => {
+                customWarnings.push(parseInt(cb.value));
+            });
             
             if (typeof customWarningTimesInput !== 'undefined' && customWarningTimesInput && customWarningTimesInput.value.trim() !== '') {
                 const extraInputs = customWarningTimesInput.value.split(',')
@@ -2115,7 +2139,7 @@
                     cardsGrid.insertBefore(newCard, refNode);
                 }
                 setupOverlay.classList.add('hidden');
-                showSetup(); // Flush states
+                editingTimerId = null; // Clear the edit state instead of reopening
             } else {
                 addTimer(data);
             }
@@ -2154,21 +2178,8 @@
                 if (extraTimeValueInput) { extraTimeValueInput.value = '25'; extraTimeValueInput.disabled = false; }
             }
             
-            // Warnings preset checkbox display
-            let presetWarnings = [];
-            if (examPresets[board] && examPresets[board].customWarnings) {
-                presetWarnings = examPresets[board].customWarnings;
-            } else if (board.startsWith('ib-') || board === 'IB') {
-                presetWarnings = [30, 5];
-            } else {
-                presetWarnings = [5];
-            }
-            
-            standardWarningsDisplay.textContent = 'Board standard warnings: ' + (presetWarnings.length ? presetWarnings.join(', ') + ' mins' : 'None');
-            
-            // Auto check standard checkboxes if they match
-            warning30MinCb.checked = presetWarnings.includes(30);
-            warning5MinCb.checked = presetWarnings.includes(5);
+            // Generate warnings dynamically
+            renderWarningCheckboxes(board, editingTimerId ? timers.find(t => t.id === editingTimerId).customWarnings : null);
 
             // 2. Handle Duration Defaults
             if (examPresets[board] && examPresets[board].durationMin) {
