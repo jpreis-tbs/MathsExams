@@ -1432,12 +1432,7 @@
             
             times.push({ key: 'start', label: 'START', time: startMin });
 
-            const isIB = board === 'IB' || board.startsWith('ib-');
-            if (isIB && durationMin > 30) {
-                times.push({ key: '30min', label: '30 MIN', time: endMin - 30 });
-            }
-
-            // Apply custom warnings if provided, otherwise default to 5 min
+            // Apply custom warnings dynamically without hard-coding default values
             if (customWarnings && customWarnings.length > 0) {
                 customWarnings.forEach(w => {
                     const warnMin = parseInt(w);
@@ -1445,8 +1440,6 @@
                         times.push({ key: `${warnMin}min`, label: `${warnMin} MIN`, time: endMin - warnMin });
                     }
                 });
-            } else if (durationMin > 5) {
-                times.push({ key: '5min', label: '5 MIN', time: endMin - 5 });
             }
 
             times.push({ key: 'end', label: '<span class="end-label-wrapper"><span>End</span><span class="badge-regular" style="display: none;">Regular time finished</span></span>', time: endMin });
@@ -2144,10 +2137,7 @@
                 customWarnings.push(...extraInputs);
             }
 
-            // Prevent duplicating IB native 30 minute warnings via computeTimes
-            if (board.startsWith('ib-') || board === 'IB') {
-                customWarnings = customWarnings.filter(w => w !== 30);
-            }
+            // Sort and deduplicate warnings
             customWarnings = [...new Set(customWarnings)].sort((a, b) => b - a);
 
             // Resolve Extra Time from checkbox state
