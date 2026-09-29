@@ -1878,15 +1878,18 @@
             let isNextGlobalExtraWarning = false;
 
             timers.forEach(timer => {
-                // Ensure we only queue actual warning announcements (keys ending in 'min'), ignoring end/start times.
+                // Queue all upcoming announcements: warnings, end, and extratime (ignore start/reading)
                 // Using (currentSec / 60) ensures exact precision matching instead of minute-rounding blocks.
-                const nextMilestone = timer.times.find(t => (currentSec / 60) < t.time && t.key.endsWith('min'));
-                if (nextMilestone) {
-                    if (nextGlobalMilestoneTime === null || nextMilestone.time < nextGlobalMilestoneTime) {
-                        nextGlobalMilestoneTime = nextMilestone.time;
-                        isNextGlobalExtraWarning = !!nextMilestone.isExtraWarning;
-                    } else if (nextMilestone.time === nextGlobalMilestoneTime) {
-                        if (nextMilestone.isExtraWarning) {
+                const upcoming = timer.times.filter(t => (currentSec / 60) < t.time && t.key !== 'start' && t.key !== 'reading');
+                
+                if (upcoming.length > 0) {
+                    const nextTime = upcoming[0].time;
+                    
+                    if (nextGlobalMilestoneTime === null || nextTime < nextGlobalMilestoneTime) {
+                        nextGlobalMilestoneTime = nextTime;
+                        isNextGlobalExtraWarning = upcoming.some(t => t.time === nextTime && t.isExtraWarning);
+                    } else if (nextTime === nextGlobalMilestoneTime) {
+                        if (upcoming.some(t => t.time === nextTime && t.isExtraWarning)) {
                             isNextGlobalExtraWarning = true;
                         }
                     }
