@@ -114,23 +114,6 @@
             margin-top: 8px;
         }
 
-        .btn-link {
-            background: none;
-            color: #555;
-            font-size: 0.95rem;
-            text-decoration: underline;
-            padding: 8px 0;
-            width: 100%;
-            text-align: center;
-            cursor: pointer;
-            border: none;
-            margin-top: 4px;
-        }
-
-        .btn-link:hover {
-            color: #000;
-        }
-
         .setup-cancel {
             background: none;
             color: #999;
@@ -259,6 +242,32 @@
             transition: color 0.3s, background-color 0.3s;
         }
 
+        /* Which exam(s) the next announcement belongs to (only shown with 2+ timers) */
+        .announcement-exam {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #777;
+            margin-top: 2px;
+            max-width: 220px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+        }
+
+        .announcement-exam:empty {
+            display: none;
+        }
+
+        .announcement-exam > div {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .announcement-exam-extra {
+            color: #d97706;
+        }
+
         /* Distinct Hue for Next Announcement when it's an Extra Time Warning */
         .next-announcement-block.is-extra-warning .announcement-time {
             color: #d97706 !important;
@@ -357,6 +366,23 @@
             color: #666;
         }
 
+        .card-edit {
+            position: absolute;
+            top: 10px;
+            right: 40px; /* Shifted left to accommodate the 'X' */
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #bbb;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .card-edit:hover {
+            color: #666;
+        }
+
         .exam-name {
             font-size: 3.5rem;
             font-weight: 700;
@@ -364,7 +390,7 @@
             margin-bottom: 2px;
             line-height: 1.1; /* Fixes vertical text alignment / cropping */
             padding: 0 20px; /* Prevents long titles from hitting the 'X' button */
-            word-wrap: break-word;
+            overflow-wrap: anywhere; /* Long single words wrap instead of spilling out of narrow cards */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -442,52 +468,6 @@
         .exam-card.maths { --board-theme-color: #FFDA03; --board-theme-muted: #ffe866; }
         .exam-card.custom { --board-theme-color: #000000; --board-theme-muted: #999999; }
 
-        /* Extra Time Badge Styling */
-        .extra-badge {
-            margin-left: 8px;
-            font-size: 0.85em;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 4px;
-            display: none;
-        }
-
-        /* Targeted styling for Extra Time Row components */
-        .time-row[data-key="extratime"].active-extra-primary .label,
-        .time-row[data-key="extratime"].active-extra-secondary .label {
-            background-color: transparent !important;
-            color: inherit !important;
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .time-row[data-key="extratime"].active-extra-primary .extra-label-text,
-        .time-row[data-key="extratime"].active-extra-secondary .extra-label-text {
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: -6px;
-        }
-
-        /* Primary active state (no conflict) */
-        .time-row[data-key="extratime"].active-extra-primary .extra-label-text,
-        .time-row[data-key="extratime"].active-extra-primary .extra-badge {
-            background-color: var(--board-theme-color) !important;
-            color: var(--card-base-bg) !important;
-        }
-        
-        /* Exception: Maths primary text color */
-        .exam-card.maths .time-row[data-key="extratime"].active-extra-primary .extra-label-text,
-        .exam-card.maths .time-row[data-key="extratime"].active-extra-primary .extra-badge {
-            color: #000 !important;
-        }
-
-        /* Secondary active state (conflict resolution) */
-        .time-row[data-key="extratime"].active-extra-secondary .extra-label-text,
-        .time-row[data-key="extratime"].active-extra-secondary .extra-badge {
-            background-color: var(--board-theme-muted) !important;
-            color: #000 !important; /* High contrast against muted backgrounds */
-        }
-
         /* Unified Time Row Highlights (For ALL boards EXCEPT Maths) */
         #cards-grid .exam-card:not(.maths) .time-row[class*="highlighted-"],
         #cards-grid .exam-card:not(.maths) .start-edit-row[class*="highlighted-"] {
@@ -502,34 +482,11 @@
             color: #000000 !important;
         }
         
-        /* Extra Time Warning Shrink-Wrap Highlights (Distinct Hue / Muted Tone) */
-        .exam-card.ib .time-row .label.active-extra-warning,
-        .exam-card.ib .time-row .label.active-extra-indicator {
-            background-color: #9eb6ef !important;
-            color: #000 !important;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-left: -8px;
-        }
-        .exam-card.igcse .time-row .label.active-extra-warning,
-        .exam-card.igcse .time-row .label.active-extra-indicator {
-            background-color: #f1a5a5 !important;
-            color: #000 !important;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-left: -8px;
-        }
-        .exam-card.maths .time-row .label.active-extra-warning,
-        .exam-card.maths .time-row .label.active-extra-indicator {
-            background-color: #ffe866 !important;
-            color: #000 !important;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-left: -8px;
-        }
-        .exam-card.custom .time-row .label.active-extra-warning,
-        .exam-card.custom .time-row .label.active-extra-indicator {
-            background-color: #999999 !important;
+        /* Extra-time warning (not listed on the card): lighter-hue chip on the matching
+           warning label, plus the EXTRA TIME label as context indicator */
+        .exam-card .time-row .label.active-extra-warning,
+        .exam-card .time-row .label.active-extra-indicator {
+            background-color: var(--board-theme-muted) !important;
             color: #000 !important;
             padding: 2px 8px;
             border-radius: 4px;
@@ -642,7 +599,7 @@
         .countdown-time {
             display: inline-block;
             /* clamp(MIN, PREFERRED, MAX) using Container Query Inline (cqi) */
-            font-size: clamp(2.5rem, 18cqi, 6rem); 
+            font-size: clamp(2.5rem, 20cqi, 6rem);
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             padding: 4px 18px;
@@ -650,15 +607,6 @@
             transition: background-color 0.3s, color 0.3s;
             white-space: nowrap; /* Forces the digits to stay on a single line */
             letter-spacing: -2px; /* Pulls the digits slightly closer together */
-        }
-
-		.next-announcement {
-            font-size: 1.2rem; /* Roughly 1/3 of the main clock font */
-            text-align: center;
-            font-weight: 500;
-            opacity: 0.85; /* Slight transparency so it doesn't overpower the clock */
-            margin-top: -5px; 
-            margin-bottom: 12px;
         }
 
         /* --- Base Countdown Colors (For ALL boards EXCEPT Maths) --- */
@@ -696,13 +644,6 @@
         
         /* Bulletproof: Force EVERY inner text element to swap to yellow */
         html body #cards-grid .exam-card.maths .countdown-time * {
-            color: #FFDA03 !important;
-        }
-
-        /* Forces the inner text child to perfectly swap to yellow */
-        html body #cards-grid .exam-card.maths.announcement .countdown-time .time-display,
-        html body #cards-grid .exam-card.maths .countdown-time .time-display {
-            background-color: transparent !important;
             color: #FFDA03 !important;
         }
 
@@ -873,125 +814,6 @@
             height: 40px;
             fill: currentColor;
         }
-/* --- PHASE 3: VISUAL STYLING ADDITIONS --- */
-
-    /* 1. Active Warning Inversion */
-    .exam-card.ib .time-row.active-warning-invert,
-    .exam-card.ib .start-edit-row.active-warning-invert {
-        background-color: #1a56db !important;
-        color: #fff !important;
-        border-radius: 6px;
-    }
-    .exam-card.igcse .time-row.active-warning-invert,
-    .exam-card.igcse .start-edit-row.active-warning-invert {
-        background-color: #dc2626 !important;
-        color: #fff !important;
-        border-radius: 6px;
-    }
-
-    .exam-card.maths .time-row.active-warning-invert,
-    .exam-card.maths .start-edit-row.active-warning-invert {
-        background-color: #FFDA03 !important;
-        color: #000 !important;
-        border-radius: 6px;
-    }
-	
-	/* Override for active warnings (if applicable) */
-	.exam-card.custom .time-row.active-warning-invert,
-	.exam-card.custom .start-edit-row.active-warning-invert {
-		background-color: #000000 !important;
-		color: #ffffff !important;
-		border-radius: 6px;
-	}
-    
-    /* Ensure subordinate extra time remains legible during inversion */
-    .active-warning-invert .extra-time-val,
-    .active-extra-warning .extra-time-val {
-        color: #f9f9f9 !important;
-    }
-
-    /* 2. Dual Rectangles for Extra Time Warnings (Inverted against the active row) */
-    .exam-card.ib .time-row.active-extra-warning .main-label,
-    .exam-card.ib .time-row.active-extra-warning .extra-label {
-        background-color: #fff;
-        color: #1a56db;
-        padding: 2px 6px;
-        border-radius: 4px;
-        margin-left: -6px;
-    }
-    .exam-card.igcse .time-row.active-extra-warning .main-label,
-    .exam-card.igcse .time-row.active-extra-warning .extra-label {
-        background-color: #fff;
-        color: #dc2626;
-        padding: 2px 6px;
-        border-radius: 4px;
-        margin-left: -6px;
-    }
-
-    /* 5. Permanent "Regular End" Marker */
-    .exam-card.ib .regular-end-marker .main-label {
-        background-color: #1a56db;
-        color: #fff;
-        padding: 2px 8px;
-        border-radius: 4px;
-        margin-left: -8px;
-    }
-    .exam-card.igcse .regular-end-marker .main-label {
-        background-color: #dc2626;
-        color: #fff;
-        padding: 2px 8px;
-        border-radius: 4px;
-        margin-left: -8px;
-    }
-
-    /* 6. Diagonal Finished Banner Board Colors */
-    .exam-card.ib .exam-finished-overlay {
-        background-color: #1a56db;
-    }
-    .exam-card.igcse .exam-finished-overlay {
-        background-color: #dc2626;
-    }
-
-    /* Maths Board Colors */
-    .exam-card.maths {
-        --exam-color: #FFDA03;
-    }
-    
-    .exam-card.maths .time-row.active-warning-invert,
-    .exam-card.maths .start-edit-row.active-warning-invert,
-    {
-        background-color: #FFDA03 !important;
-        color: #000 !important;
-        border-radius: 6px;
-    }
-    
-    .exam-card.maths.active-warning-invert .extra-time-val,
-    .exam-card.maths.active-extra-warning .extra-time-val {
-        color: #333 !important;
-    }
-
-    .exam-card.maths .time-row.active-extra-warning .main-label,
-    .exam-card.maths .time-row.active-extra-warning .extra-label {
-        background-color: #000;
-        color: #FFDA03;
-        padding: 2px 6px;
-        border-radius: 4px;
-        margin-left: -6px;
-    }
-
-    .exam-card.maths .regular-end-marker .main-label {
-        background-color: #FFDA03;
-        color: #000;
-        padding: 2px 8px;
-        border-radius: 4px;
-        margin-left: -8px;
-    }
-
-    .exam-card.maths .exam-finished-overlay {
-        background-color: #FFDA03;
-        color: #000 !important;
-    }
-
         .form-group input[type="checkbox"],
         input[type="checkbox"] {
             width: auto;
@@ -1020,12 +842,25 @@
                 font-size: 2.6rem;
             }
 
-            .countdown-time {
-                font-size: 5rem;
-            }
-            
+            /* Countdown keeps its container-relative clamp() sizing so it always fits the card */
+
             .exam-card {
                 width: calc(50% - 24px); /* Switches to 2 columns */
+            }
+
+            #timer-view {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            /* Header is mirrored on wide screens; keep one copy of each control when space is tight */
+            .timer-header .header-side-left.header-add-btn,
+            .timer-header .next-announcement-block.header-side-right {
+                display: none;
+            }
+
+            .timer-header {
+                gap: 12px;
             }
         }
 
@@ -1035,9 +870,27 @@
                 padding: 24px 16px 96px;
             }
 
+            /* Clock on its own row, announcement + Add button share the row below */
             .timer-header {
                 padding: 10px 0;
                 margin-bottom: 24px;
+                flex-wrap: wrap;
+                row-gap: 8px;
+                max-height: none;
+            }
+
+            .timer-header .header-center {
+                order: -1;
+                width: 100%;
+            }
+
+            .current-date {
+                white-space: normal;
+                text-align: center;
+            }
+
+            .announcement-exam {
+                max-width: 190px;
             }
             .header-add-btn {
                 padding: 0 12px;
@@ -1066,7 +919,7 @@
             }
 
             .countdown-time {
-                font-size: 4.4rem;
+                padding: 4px 10px;
             }
 
             .setup-card {
@@ -1161,7 +1014,7 @@
                     <input type="checkbox" id="enable-extra-time">
                     <label for="enable-extra-time" style="margin-bottom: 0; white-space: nowrap;">Show extra time</label>
                     <div style="display: flex; gap: 5px; margin-left: auto;">
-                        <input type="number" id="extra-time-value" min="0" placeholder="Value" value="25" style="width: 4rem;" disabled>
+                        <input type="number" id="extra-time-value" min="0" placeholder="Value" style="width: 4rem;" disabled>
                         <select id="extra-time-type" style="width: auto;" disabled>
                             <option value="percentage">%</option>
                             <option value="absolute">mins</option>
@@ -1180,11 +1033,12 @@
     <!-- Timer view -->
     <div id="timer-view">
             <div class="timer-header">
-                <button class="header-add-btn" onclick="showSetup()">+ Add Timer</button>
-                
-                <div class="next-announcement-block">
+                <button class="header-add-btn header-side-left" onclick="showSetup()">+ Add Timer</button>
+
+                <div class="next-announcement-block header-side-left">
                     <div class="announcement-label">NEXT ANNOUNCEMENT</div>
                     <div class="announcement-time">---</div>
+                    <div class="announcement-exam"></div>
                 </div>
 
                 <div class="header-center">
@@ -1193,12 +1047,13 @@
                     <div class="current-date" id="current-date"></div>
                 </div>
 
-                <div class="next-announcement-block">
+                <div class="next-announcement-block header-side-right">
                     <div class="announcement-label">NEXT ANNOUNCEMENT</div>
                     <div class="announcement-time">---</div>
+                    <div class="announcement-exam"></div>
                 </div>
 
-                <button class="header-add-btn" onclick="showSetup()">+ Add Timer</button>
+                <button class="header-add-btn header-side-right" onclick="showSetup()">+ Add Timer</button>
             </div>
             <div class="cards-grid" id="cards-grid"></div>
         </div>
@@ -1339,24 +1194,43 @@
             }
         });
 
-        // Central Data Presets for specific exams
+        // Board presets: the single source of every per-board default.
+        //   type        → colour theme / CSS class (ib, igcse, maths, custom)
+        //   label       → text shown at the top of the card
+        //   durationMin → default duration
+        //   warnings    → default warning checkboxes (minutes before the end)
+        //   readingMin  → default reading time (0 = off)
+        //   extraPct    → default extra time in % (0 = off)
+        const IB_DEFAULTS    = { type: 'ib',    warnings: [30, 5], readingMin: 5, extraPct: 25 };
+        const IGCSE_DEFAULTS = { type: 'igcse', warnings: [5],     readingMin: 0, extraPct: 25 };
+        const MATHS_DEFAULTS = { type: 'maths',                    readingMin: 0, extraPct: 0 };
+
         const examPresets = {
-            "maths-kangaroo": { durationMin: 100, extraTimeSec: 0, customWarnings: [20, 5] },
-            "maths-obmep": { durationMin: 150, extraTimeSec: 0, customWarnings: [20, 5] },
-            "maths-jacob-palis": { durationMin: 150, extraTimeSec: 0, customWarnings: [15, 5] },
-            
-            "ib-higher-p1": { durationMin: 120 },
-            "ib-higher-p2": { durationMin: 120 },
-            "ib-higher-p3": { durationMin: 75 },
-            "ib-standard-p1": { durationMin: 90 },
-            "ib-standard-p2": { durationMin: 90 },
-            
-            "igcse-ext-p2": { durationMin: 90 },
-            "igcse-ext-p4": { durationMin: 90 },
-            "igcse-ext-p6": { durationMin: 90 },
-            "igcse-add-p1": { durationMin: 120 },
-            "igcse-add-p2": { durationMin: 120 }
+            "Custom":            { type: 'custom', label: 'Custom', durationMin: 45, warnings: [5], readingMin: 0, extraPct: 25 },
+
+            "ib-higher-p1":      { ...IB_DEFAULTS, label: 'IB - Higher Paper 1',   durationMin: 120 },
+            "ib-higher-p2":      { ...IB_DEFAULTS, label: 'IB - Higher Paper 2',   durationMin: 120 },
+            "ib-higher-p3":      { ...IB_DEFAULTS, label: 'IB - Higher Paper 3',   durationMin: 75 },
+            "ib-standard-p1":    { ...IB_DEFAULTS, label: 'IB - Standard Paper 1', durationMin: 90 },
+            "ib-standard-p2":    { ...IB_DEFAULTS, label: 'IB - Standard Paper 2', durationMin: 90 },
+            "IB":                { ...IB_DEFAULTS, label: 'IB (Custom)',           durationMin: 90 },
+
+            "igcse-ext-p2":      { ...IGCSE_DEFAULTS, label: 'IGCSE - Extended Paper 2',   durationMin: 90 },
+            "igcse-ext-p4":      { ...IGCSE_DEFAULTS, label: 'IGCSE - Extended Paper 4',   durationMin: 90 },
+            "igcse-ext-p6":      { ...IGCSE_DEFAULTS, label: 'IGCSE - Extended Paper 6',   durationMin: 90 },
+            "igcse-add-p1":      { ...IGCSE_DEFAULTS, label: 'IGCSE - Additional Paper 1', durationMin: 120 },
+            "igcse-add-p2":      { ...IGCSE_DEFAULTS, label: 'IGCSE - Additional Paper 2', durationMin: 120 },
+            "IGCSE":             { ...IGCSE_DEFAULTS, label: 'IGCSE (Custom)',             durationMin: 90 },
+
+            "maths-kangaroo":    { ...MATHS_DEFAULTS, label: 'Maths Kangaroo',       durationMin: 100, warnings: [20, 5] },
+            "maths-obmep":       { ...MATHS_DEFAULTS, label: 'Maths OBMEP',          durationMin: 150, warnings: [20, 5] },
+            "maths-jacob-palis": { ...MATHS_DEFAULTS, label: 'Maths Jacob Palis Jr', durationMin: 150, warnings: [15, 5] }
         };
+
+        // Preset for a board; unknown boards (e.g. from an edited save file) fall back to Custom
+        function getPreset(board) {
+            return examPresets[board] || examPresets.Custom;
+        }
 
 
         // Form refs
@@ -1377,7 +1251,6 @@
         // Safely fetch custom inputs (if they exist in your HTML)
         const extraTimeTypeInput = document.getElementById('extra-time-type');
         const extraTimeValueInput = document.getElementById('extra-time-value');
-        const customBoardNameInput = document.getElementById('custom-board-name');
         const customWarningTimesInput = document.getElementById('custom-warning-times');
 
         // Helpers
@@ -1400,8 +1273,9 @@
         }
 
         function minutesToTimeStr(totalMin) {
-            const totalSec = Math.round(totalMin * 60);
-            const h = Math.floor(totalSec / 3600) % 24;
+            // Wrap into 00:00–23:59:59 so times before midnight / after 24:00 display correctly
+            const totalSec = ((Math.round(totalMin * 60) % 86400) + 86400) % 86400;
+            const h = Math.floor(totalSec / 3600);
             const m = Math.floor((totalSec % 3600) / 60);
             const s = totalSec % 60;
             if (s === 0) {
@@ -1416,9 +1290,22 @@
             return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
         }
 
-        function nowMinutes() {
-            const now = new Date();
-            return now.getHours() * 60 + now.getMinutes();
+        // Shift the wall-clock second by ±24h so it sits within 12h of the exam's window.
+        // This lets exams that cross midnight (or start just after it) keep counting correctly.
+        function timerNowSec(timer, currentSec) {
+            const first = timer.times[0].time * 60;
+            const last = timer.times[timer.times.length - 1].time * 60;
+            // Exams entirely within one day keep plain wall-clock behaviour
+            if (first >= 0 && last <= 86400) return currentSec;
+            const mid = (first + last) / 2;
+            let s = currentSec;
+            while (s - mid > 43200) s -= 86400;
+            while (mid - s > 43200) s += 86400;
+            return s;
+        }
+
+        function milestoneSec(t) {
+            return Math.round(t.time * 60);
         }
 
         // Compute key times for a timer (Adapted for custom warnings & extra time)
@@ -1436,7 +1323,7 @@
             if (customWarnings && customWarnings.length > 0) {
                 customWarnings.forEach(w => {
                     const warnMin = parseInt(w);
-                    if (!isNaN(warnMin) && durationMin > warnMin) {
+                    if (!isNaN(warnMin) && warnMin > 0 && durationMin > warnMin) {
                         times.push({ key: `${warnMin}min`, label: `${warnMin} MIN`, time: endMin - warnMin });
                     }
                 });
@@ -1444,32 +1331,30 @@
 
             times.push({ key: 'end', label: '<span class="end-label-wrapper"><span>End</span><span class="badge-regular" style="display: none;">Regular time finished</span></span>', time: endMin });
 
-            // Handle extra time (Default is 25%, override if custom extraTimeSec is set)
-            let extraMin = Math.round(durationMin * 0.25); 
-            if (extraTimeSec !== null) {
-                extraMin = Math.round(extraTimeSec / 60);
-            }
+            // Extra time comes from the timer's own setting (defaults live in examPresets)
+            const extraMin = extraTimeSec ? Math.round(extraTimeSec / 60) : 0;
 
             if (extraMin > 0) {
+                // Extra-time candidates run a parallel, longer exam: same start, duration + extra.
+                // Their warnings count back from the extended end, e.g. 1h + 25% = 1h15m, so a
+                // 30 min warning falls 45 min in (which may be before the regular end).
                 const extraEndMin = endMin + extraMin;
-                times.push({ key: 'extratime', label: 'EXTRA TIME', time: extraEndMin });
-                
-                // Dynamically inherit all regular minute warnings that were generated
+                times.push({ key: 'extratime', label: 'EXTRA TIME', time: extraEndMin, isExtra: true });
+
+                // Mirror every regular minute warning that was generated
                 const generatedRegularWarnings = times
                     .filter(t => /^\d+min$/.test(t.key))
                     .map(t => parseInt(t.key.replace('min', '')));
 
-                // Generate Extra Time Warnings (Hidden from UI)
                 generatedRegularWarnings.forEach(w => {
-                    if (extraMin >= w) {
-                        times.push({ 
-                            key: `extra-${w}min`, 
-                            label: `${w} MIN`, 
-                            time: extraEndMin - w,
-                            isExtraWarning: true,
-                            hiddenFromUI: true
-                        });
-                    }
+                    times.push({
+                        key: `extra-${w}min`,
+                        label: `${w} MIN`,
+                        time: extraEndMin - w,
+                        isExtra: true,
+                        isExtraWarning: true,
+                        hiddenFromUI: true // Announced, but not listed on the card
+                    });
                 });
             }
 
@@ -1483,14 +1368,7 @@
             const container = document.getElementById('dynamic-warnings-container');
             container.innerHTML = '';
             
-            let standardWarnings = [];
-            if (examPresets[board] && examPresets[board].customWarnings) {
-                standardWarnings = [...examPresets[board].customWarnings];
-            } else if (board.startsWith('ib-') || board === 'IB') {
-                standardWarnings = [30, 5];
-            } else {
-                standardWarnings = [5];
-            }
+            const standardWarnings = [...(getPreset(board).warnings || [])];
             
             let allWarnings = [...standardWarnings];
             if (activeWarnings) {
@@ -1523,7 +1401,7 @@
             examNameInput.value = timer.name;
             durationHoursInput.value = Math.floor(timer.durationMin / 60);
             durationMinutesInput.value = timer.durationMin % 60;
-            startTimeInput.value = minutesToTimeStr(timer.startMin).substring(0,5);
+            startTimeInput.value = minutesToTimeStr(timer.startMin);
 
             if (timer.readingDurationMin > 0) {
                 enableReadingTimeCb.checked = true;
@@ -1535,29 +1413,26 @@
                 readingDurationInput.value = 0;
             }
 
-            const extraCustom = timer.customWarnings ? timer.customWarnings.filter(w => w !== 30 && w !== 5) : [];
-            const warningsContainer = document.getElementById('custom-warnings-container');
-            const warningsBtn = document.getElementById('btn-toggle-warnings');
-            
-            if (extraCustom.length > 0) {
-                warningsContainer.style.display = 'block';
-                warningsBtn.textContent = '- Hide extra warning';
-                document.getElementById('custom-warning-times').value = extraCustom.join(', ');
-            } else {
-                warningsContainer.style.display = 'none';
-                warningsBtn.textContent = '+ Add extra warning';
-                document.getElementById('custom-warning-times').value = '';
-            }
+            // Existing custom warnings are already shown as checkboxes by renderWarningCheckboxes,
+            // so the free-text field starts empty (otherwise unticking a box could never remove it)
+            document.getElementById('custom-warnings-container').style.display = 'none';
+            document.getElementById('btn-toggle-warnings').textContent = '+ Add extra warning';
+            document.getElementById('custom-warning-times').value = '';
 
             if (timer.extraTimeSec > 0) {
                 enableExtraTimeCb.checked = true;
                 document.getElementById('extra-time-value').disabled = false;
                 document.getElementById('extra-time-type').disabled = false;
-                
-                const expectedPercentageSec = (timer.durationMin * 60) * 0.25;
-                if (timer.extraTimeSec === expectedPercentageSec) {
+
+                // Older save files don't store the type/value: recognise the board's default %
+                const presetPct = getPreset(timer.board).extraPct;
+                const expectedPercentageSec = (timer.durationMin * 60) * (presetPct / 100);
+                if (timer.extraTimeType && timer.extraTimeValue !== undefined) {
+                    document.getElementById('extra-time-type').value = timer.extraTimeType;
+                    document.getElementById('extra-time-value').value = timer.extraTimeValue;
+                } else if (presetPct > 0 && timer.extraTimeSec === expectedPercentageSec) {
                     document.getElementById('extra-time-type').value = 'percentage';
-                    document.getElementById('extra-time-value').value = 25;
+                    document.getElementById('extra-time-value').value = presetPct;
                 } else {
                     document.getElementById('extra-time-type').value = 'absolute';
                     document.getElementById('extra-time-value').value = Math.round(timer.extraTimeSec / 60);
@@ -1583,18 +1458,13 @@
             btnMoreOptions.innerHTML = 'More options <span style="font-size: 0.7em;">▼</span>';
             
             examNameInput.value = '';
-            durationHoursInput.value = '0';
-            durationMinutesInput.value = '45';
             const now = new Date();
             startTimeInput.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
             examBoardSelect.value = 'Custom';
+            // Apply the Custom preset (duration, warnings, reading & extra time);
+            // otherwise the form keeps the settings of the last timer added or edited
+            examBoardSelect.dispatchEvent(new Event('change'));
 
-            enableReadingTimeCb.checked = false;
-            readingDurationInput.disabled = true;
-            readingDurationInput.value = '0';
-
-            if (extraTimeTypeInput) extraTimeTypeInput.value = 'percentage';
-            if (extraTimeValueInput) extraTimeValueInput.value = '25';
             if (customWarningTimesInput) customWarningTimesInput.value = '';
 
             const warningsContainer = document.getElementById('custom-warnings-container');
@@ -1613,68 +1483,36 @@
             // Attach the exact geometry observer to this card
             bannerObserver.observe(card);
             
-            // Map the internal ID to a clean display name
-            const boardLabelMap = {
-                'ib-higher-p1': 'IB - Higher Paper 1',
-                'ib-higher-p2': 'IB - Higher Paper 2',
-                'ib-higher-p3': 'IB - Higher Paper 3',
-                'ib-standard-p1': 'IB - Standard Paper 1',
-                'ib-standard-p2': 'IB - Standard Paper 2',
-                'igcse-ext-p2': 'IGCSE - Extended Paper 2',
-                'igcse-ext-p4': 'IGCSE - Extended Paper 4',
-                'igcse-ext-p6': 'IGCSE - Extended Paper 6',
-                'igcse-add-p1': 'IGCSE - Additional Paper 1',
-                'igcse-add-p2': 'IGCSE - Additional Paper 2',
-                'maths-kangaroo': 'Maths Kangaroo',
-                'maths-obmep': 'Maths OBMEP',
-                'maths-jacob-palis': 'Maths Jacob Palis Jr',
-                'IB': 'IB (Custom)',
-                'IGCSE': 'IGCSE (Custom)'
-            };
-            const displayBoardText = boardLabelMap[timer.board] || timer.board;
-
-            // Apply proper CSS classes
-            const isIB = timer.board === 'IB' || timer.board.startsWith('ib-');
-            const isMaths = timer.board.toLowerCase().startsWith('maths');
-            const isCustom = timer.board === 'Custom';
-
-            let boardClass = 'igcse'; // default
-            if (isIB) boardClass = 'ib';
-            else if (isMaths) boardClass = 'maths';
-            else if (isCustom) boardClass = 'custom';
+            const preset = getPreset(timer.board);
+            const boardClass = preset.type; // colour theme: ib / igcse / maths / custom
             
             card.className = `exam-card ${boardClass}`;
             card.dataset.timerId = timer.id;
             card.draggable = true;
 
             card.addEventListener('mousedown', (e) => {
-                if (e.target.closest('button, input')) {
+                // Also disable dragging when grabbing the bottom-right resize grip,
+                // otherwise the browser starts a card drag instead of resizing
+                const rect = card.getBoundingClientRect();
+                const onResizeGrip = e.clientX > rect.right - 20 && e.clientY > rect.bottom - 20;
+                if (onResizeGrip || e.target.closest('button, input')) {
                     card.draggable = false;
                 }
             });
-            card.addEventListener('mouseup', () => { card.draggable = true; });
 
             const removeBtn = document.createElement('button');
             removeBtn.className = 'card-remove';
             removeBtn.textContent = '\u00d7';
+            removeBtn.setAttribute('aria-label', `Remove timer: ${timer.name}`);
+            removeBtn.title = 'Remove timer';
             removeBtn.addEventListener('click', () => removeTimer(timer.id));
             card.appendChild(removeBtn);
 
             const editBtn = document.createElement('button');
             editBtn.className = 'card-edit';
-            editBtn.innerHTML = '&#9998;'; 
-            editBtn.style.position = 'absolute';
-            editBtn.style.top = '10px';
-            editBtn.style.right = '40px'; // Shifted left to accommodate the 'X'
-            editBtn.style.background = 'none';
-            editBtn.style.border = 'none';
-            editBtn.style.fontSize = '1.2rem';
-            editBtn.style.color = '#bbb';
-            editBtn.style.cursor = 'pointer';
-            editBtn.style.padding = '4px';
-            editBtn.style.lineHeight = '1';
-            editBtn.addEventListener('mouseover', () => editBtn.style.color = '#666');
-            editBtn.addEventListener('mouseout', () => editBtn.style.color = '#bbb');
+            editBtn.innerHTML = '&#9998;';
+            editBtn.setAttribute('aria-label', `Edit timer: ${timer.name}`);
+            editBtn.title = 'Edit timer';
             editBtn.addEventListener('click', () => editTimer(timer));
             card.appendChild(editBtn);
 
@@ -1684,7 +1522,8 @@
 
             const boardLabel = document.createElement('div');
             boardLabel.className = 'exam-board-label';
-            boardLabel.textContent = timer.customBoardName || displayBoardText;
+            timer.boardLabel = timer.customBoardName || preset.label;
+            boardLabel.textContent = timer.boardLabel;
             innerWrapper.appendChild(boardLabel);
 
             const nameLabel = document.createElement('div');
@@ -1732,23 +1571,16 @@
 							}
 						});
 					} else {
-                        if (t.hiddenFromUI) return; // Skip rendering hidden milestones
-                        
+                        // Extra-time warnings are announced but not listed; only the extra-time end is shown
+                        if (t.hiddenFromUI) return;
+
 						const row = document.createElement('div');
 						row.className = 'time-row';
 						row.dataset.key = t.key;
-                        
-                        if (t.key === 'extratime') {
-                            row.innerHTML = `
-                                <span class="label"><span class="extra-label-text">${t.label}</span><span class="extra-badge"></span></span>
-                                <span class="value">${minutesToTimeStr(t.time)}</span>
-                            `;
-                        } else {
-                            row.innerHTML = `
-                                <span class="label">${t.label}</span>
-                                <span class="value">${minutesToTimeStr(t.time)}</span>
-                            `;
-                        }
+                        row.innerHTML = `
+                            <span class="label">${t.label}</span>
+                            <span class="value">${minutesToTimeStr(t.time)}</span>
+                        `;
 						rowsContainer.appendChild(row);
 					}
 				});
@@ -1800,8 +1632,10 @@
                 customBoardName: data.customBoardName,
                 customWarnings: data.customWarnings,
                 extraTimeSec: data.extraTimeSec,
-                readingDurationMin: data.readingDurationMin,
-                times: computeTimes(data.board, data.startMin, data.durationMin, data.customWarnings, data.extraTimeSec, data.readingDurationMin),
+                extraTimeType: data.extraTimeType,
+                extraTimeValue: data.extraTimeValue,
+                readingDurationMin: data.readingDurationMin || 0,
+                times: computeTimes(data.board, data.startMin, data.durationMin, data.customWarnings, data.extraTimeSec, data.readingDurationMin || 0),
                 el: null
             };
 
@@ -1814,7 +1648,7 @@
 
             if (!tickInterval) {
                 tick();
-                tickInterval = setInterval(tick, 1000);
+                scheduleTick();
             }
 
             if (timers.length === 1) {
@@ -1836,15 +1670,25 @@
             const idx = timers.findIndex(t => t.id === id);
             if (idx === -1) return;
             const timer = timers[idx];
+            bannerObserver.unobserve(timer.el);
             timer.el.remove();
             timers.splice(idx, 1);
 
             if (timers.length === 0) {
-                clearInterval(tickInterval);
+                clearTimeout(tickInterval);
                 tickInterval = null;
                 timerView.classList.remove('active');
                 showSetup();
             }
+        }
+
+        // Fire just after each wall-clock second boundary (instead of a drifting setInterval),
+        // so the displayed second never skips or repeats
+        function scheduleTick() {
+            tickInterval = setTimeout(() => {
+                tick();
+                scheduleTick();
+            }, 1000 - (Date.now() % 1000) + 5);
         }
 
         function tick() {
@@ -1870,42 +1714,76 @@
                 dateEl.textContent = `${day}${suffix} of ${monthName} ${year}   |   ${dd}/${mm}/${year}`;
             }
 
-            const currentMin = nowMinutes();
-            const currentSec = nowSeconds();
+            const wallSec = nowSeconds();
 
             // Calculate global next announcement across all timers
+            // (compared by seconds-until, so timers on either side of midnight rank correctly)
             let nextGlobalMilestoneTime = null;
-            let isNextGlobalExtraWarning = false;
+            let nextGlobalDelta = null;
+            let nextEntries = []; // every { timer, t } due at the next announcement moment
 
             timers.forEach(timer => {
+                const currentSec = timerNowSec(timer, wallSec);
                 // Queue all upcoming announcements: warnings, end, and extratime (ignore start/reading)
-                // Using (currentSec / 60) ensures exact precision matching instead of minute-rounding blocks.
-                const upcoming = timer.times.filter(t => (currentSec / 60) < t.time && t.key !== 'start' && t.key !== 'reading');
-                
+                const upcoming = timer.times.filter(t => currentSec < milestoneSec(t) && t.key !== 'start' && t.key !== 'reading');
+
                 if (upcoming.length > 0) {
-                    const nextTime = upcoming[0].time;
-                    
-                    if (nextGlobalMilestoneTime === null || nextTime < nextGlobalMilestoneTime) {
-                        nextGlobalMilestoneTime = nextTime;
-                        isNextGlobalExtraWarning = upcoming.some(t => t.time === nextTime && t.isExtraWarning);
-                    } else if (nextTime === nextGlobalMilestoneTime) {
-                        if (upcoming.some(t => t.time === nextTime && t.isExtraWarning)) {
-                            isNextGlobalExtraWarning = true;
-                        }
+                    const nextSec = milestoneSec(upcoming[0]);
+                    const delta = nextSec - currentSec;
+                    const due = upcoming.filter(t => milestoneSec(t) === nextSec).map(t => ({ timer, t }));
+
+                    if (nextGlobalDelta === null || delta < nextGlobalDelta) {
+                        nextGlobalDelta = delta;
+                        nextGlobalMilestoneTime = upcoming[0].time;
+                        nextEntries = due;
+                    } else if (delta === nextGlobalDelta) {
+                        nextEntries.push(...due);
                     }
                 }
             });
 
-            // Toggle lighter-hue highlight on Next Announcement header blocks
-            const announcementBlocks = document.querySelectorAll('.next-announcement-block');
-            announcementBlocks.forEach(block => {
+            const uniqueTimers = entries => [...new Set(entries.map(e => e.timer))];
+            const regularEntries = nextEntries.filter(e => !e.t.isExtra);
+            const extraEntries = nextEntries.filter(e => e.t.isExtra);
+            const regularTimers = uniqueTimers(regularEntries);
+            const extraTimers = uniqueTimers(extraEntries);
+            const isExtraOnly = regularEntries.length === 0 && extraEntries.length > 0;
+            const isSimultaneous = regularEntries.length > 0 && extraEntries.length > 0;
+
+            let headerLabel = 'NEXT ANNOUNCEMENT';
+            if (isExtraOnly) {
+                if (extraEntries.every(e => e.t.isExtraWarning)) headerLabel = 'EXTRA TIME WARNING';
+                else if (extraEntries.every(e => !e.t.isExtraWarning)) headerLabel = 'EXTRA TIME END';
+                else headerLabel = 'EXTRA TIME';
+            }
+
+            // Lighter-hue highlight when the next announcement is only for extra-time candidates
+            document.querySelectorAll('.next-announcement-block').forEach(block => {
+                block.classList.toggle('is-extra-warning', isExtraOnly);
                 const labelEl = block.querySelector('.announcement-label');
-                if (nextGlobalMilestoneTime !== null && isNextGlobalExtraWarning) {
-                    block.classList.add('is-extra-warning');
-                    if (labelEl) labelEl.textContent = "EXTRA TIME WARNING";
+                if (labelEl) labelEl.textContent = headerLabel;
+            });
+
+            // Who the announcement is for:
+            //  - regular + extra at the same moment → "Regular: <board>" / "Extra: <board>" ("Multiple" if >1)
+            //  - otherwise, with several exams on screen → the exam name(s)
+            const who = list => list.length > 1 ? 'Multiple' : list[0].boardLabel;
+            document.querySelectorAll('.announcement-exam').forEach(el => {
+                el.replaceChildren();
+                if (isSimultaneous) {
+                    const reg = document.createElement('div');
+                    reg.textContent = `Regular: ${who(regularTimers)}`;
+                    const ext = document.createElement('div');
+                    ext.className = 'announcement-exam-extra';
+                    ext.textContent = `Extra: ${who(extraTimers)}`;
+                    el.append(reg, ext);
+                    el.title = `${reg.textContent}\n${ext.textContent}`;
+                } else if (timers.length > 1 && nextEntries.length > 0) {
+                    const names = uniqueTimers(nextEntries).map(t => t.name).join(', ');
+                    el.textContent = names;
+                    el.title = names;
                 } else {
-                    block.classList.remove('is-extra-warning');
-                    if (labelEl) labelEl.textContent = "NEXT ANNOUNCEMENT";
+                    el.title = '';
                 }
             });
 
@@ -1919,19 +1797,21 @@
             });
 
             timers.forEach(timer => {
-                let highlightClass = 'highlighted-igcse'; 
-                if (timer.board === 'IB' || timer.board.startsWith('ib-')) highlightClass = 'highlighted-ib';
-                if (timer.board.toLowerCase().startsWith('maths')) highlightClass = 'highlighted-maths';
-                if (timer.board === 'Custom') highlightClass = 'highlighted-custom';
+                const highlightClass = 'highlighted-' + getPreset(timer.board).type;
 
                 const rowsContainer = timer.el.querySelector('.time-rows');
                 const rows = rowsContainer.children;
 
+                const currentSec = timerNowSec(timer, wallSec);
+
+                // A milestone is "active" for the 60 seconds starting at its exact time
+                // (works for start times / durations that aren't on a whole minute)
                 let currentIdx = -1;
                 let activeMilestones = [];
                 timer.times.forEach((t, i) => {
-                    if (currentMin >= t.time) currentIdx = i;
-                    if (currentMin === t.time) activeMilestones.push(t);
+                    const tSec = milestoneSec(t);
+                    if (currentSec >= tSec) currentIdx = i;
+                    if (currentSec >= tSec && currentSec < tSec + 60) activeMilestones.push(t);
                 });
 
                 const statusEl = timer.el.querySelector('.countdown-status');
@@ -1943,10 +1823,10 @@
                 const readingTime = timer.times.find(t => t.key === 'reading');
                 const extraTime = timer.times.find(t => t.key === 'extratime');
 
-                const endSec = endTime.time * 60;
-                const startSec = startTime.time * 60;
-                const readingSec = readingTime ? readingTime.time * 60 : null;
-                const finalSec = extraTime ? extraTime.time * 60 : endSec;
+                const endSec = milestoneSec(endTime);
+                const startSec = milestoneSec(startTime);
+                const readingSec = readingTime ? milestoneSec(readingTime) : null;
+                const finalSec = extraTime ? milestoneSec(extraTime) : endSec;
 
                 // Handle the "Regular time finished" badge visibility
                 const endRow = timer.el.querySelector('.time-row[data-key="end"]');
@@ -1959,60 +1839,33 @@
 
                 // Cleanup all highlights
                 Array.from(rows).forEach(row => {
-                    // Remove legacy row highlights just in case
-                    row.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom', 'active-extra-warning');
-                    
-                    // Remove regular highlights from the full row
                     row.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom');
-
-                    // Remove extra time highlights from the label
                     const label = row.querySelector('.label');
-                    if (label) {
-                        label.classList.remove('active-extra-warning', 'active-extra-indicator');
-                    }
-                    
-                    // Ensure the extra badge stays hidden forever
-                    const badge = row.querySelector('.extra-badge');
-                    if (badge) {
-                        badge.style.display = 'none';
-                    }
+                    if (label) label.classList.remove('active-extra-warning', 'active-extra-indicator');
                 });
                 countdownEl.classList.remove('highlighted-ib', 'highlighted-igcse', 'highlighted-maths', 'highlighted-custom');
 
                 // Apply highlights based on active milestones
                 if (activeMilestones.length > 0) {
-                    const regularMilestones = activeMilestones.filter(t => !t.isExtraWarning);
-                    const extraMilestones = activeMilestones.filter(t => t.isExtraWarning);
-                    
-                    // Process Regular Milestones (Full Row Highlight)
-                    if (regularMilestones.length > 0) {
-                        const regRow = timer.el.querySelector(`[data-key="${regularMilestones[0].key}"]`);
-                        if (regRow) {
-                            regRow.classList.add(highlightClass);
-                        }
-                    }
+                    // Rows listed on the card (incl. the EXTRA TIME end) get the full-row highlight
+                    const rowMilestones = activeMilestones.filter(t => !t.hiddenFromUI);
+                    const extraWarnings = activeMilestones.filter(t => t.isExtraWarning);
 
-                    // Process Extra Time Milestones (Lighter-Hue Shrink-Wrap Highlight)
-                    if (extraMilestones.length > 0) {
-                        const extraKey = extraMilestones[0].key.replace('extra-', '');
-                        const matchingRegRow = timer.el.querySelector(`[data-key="${extraKey}"]`);
-                        if (matchingRegRow) {
-                            const label = matchingRegRow.querySelector('.label');
-                            if (label) {
-                                label.classList.add('active-extra-warning');
-                            } else {
-                                matchingRegRow.classList.add('active-extra-warning');
-                            }
-                        }
+                    rowMilestones.forEach(m => {
+                        const regRow = timer.el.querySelector(`[data-key="${m.key}"]`);
+                        if (regRow) regRow.classList.add(highlightClass);
+                    });
 
-                        // Highlight EXTRA TIME row label as warning context indicator
-                        const extraTimeRow = timer.el.querySelector('[data-key="extratime"]');
-                        if (extraTimeRow) {
-                            const extraLabel = extraTimeRow.querySelector('.label');
-                            if (extraLabel) {
-                                extraLabel.classList.add('active-extra-indicator');
-                            }
-                        }
+                    // Unlisted extra-time warnings: lighter-hue chip on the matching warning label
+                    // plus the EXTRA TIME label, so the card shows who the announcement is for
+                    extraWarnings.forEach(m => {
+                        const matchingRow = timer.el.querySelector(`[data-key="${m.key.replace('extra-', '')}"]`);
+                        const label = matchingRow && matchingRow.querySelector('.label');
+                        if (label) label.classList.add('active-extra-warning');
+                    });
+                    if (extraWarnings.length > 0) {
+                        const extraLabel = timer.el.querySelector('[data-key="extratime"] .label');
+                        if (extraLabel) extraLabel.classList.add('active-extra-indicator');
                     }
                 } else if (currentIdx >= 0 && currentSec < finalSec) {
                     countdownEl.classList.add(highlightClass);
@@ -2022,10 +1875,8 @@
                 if (bannerEl) bannerEl.style.display = 'none';
 
                 if (currentSec >= finalSec) {
-                    statusEl.textContent = 'EXAM ENDED';
-                    countdownEl.textContent = '00:00:00';
-                    countdownEl.classList.remove('warning', 'danger');
                     statusEl.textContent = 'Exam Finished';
+                    countdownEl.textContent = '00:00:00';
                     if (bannerEl) bannerEl.style.display = 'flex'; // SHOW BANNER
                 } else if (currentSec >= endSec) {
                     statusEl.textContent = 'Extra Time';
@@ -2119,12 +1970,16 @@
             }
             const startMin = timeStrToMinutes(startTimeInput.value);
 
+            // Custom board name only applies to Custom boards: keep it when editing a Custom timer,
+            // ask for one when a timer becomes Custom, and drop it when switching to a named board
             let customBoardName = null;
-            if (board === 'Custom' && !editingTimerId) {
-                customBoardName = prompt('Enter custom board name:', 'Custom Board') || 'Custom';
-            } else if (editingTimerId) {
-                const existing = timers.find(t => t.id === editingTimerId);
-                if (existing) customBoardName = existing.customBoardName;
+            if (board === 'Custom') {
+                const existing = editingTimerId ? timers.find(t => t.id === editingTimerId) : null;
+                if (existing && existing.board === 'Custom' && existing.customBoardName) {
+                    customBoardName = existing.customBoardName;
+                } else {
+                    customBoardName = prompt('Enter custom board name:', 'Custom Board') || 'Custom';
+                }
             }
 
             // Resolve Custom Warnings from dynamic checkboxes and input
@@ -2136,7 +1991,7 @@
             if (typeof customWarningTimesInput !== 'undefined' && customWarningTimesInput && customWarningTimesInput.value.trim() !== '') {
                 const extraInputs = customWarningTimesInput.value.split(',')
                     .map(s => parseInt(s.trim()))
-                    .filter(n => !isNaN(n));
+                    .filter(n => !isNaN(n) && n > 0);
                 customWarnings.push(...extraInputs);
             }
 
@@ -2145,10 +2000,12 @@
 
             // Resolve Extra Time from checkbox state
             let extraTimeSec = null;
+            let extraTimeType = null;
+            let extraTimeValue = null;
             if (enableExtraTimeCb.checked && typeof extraTimeTypeInput !== 'undefined' && extraTimeTypeInput && extraTimeValueInput) {
-                const extraTimeType = extraTimeTypeInput.value;
-                const extraTimeValue = parseFloat(extraTimeValueInput.value) || 0;
-                
+                extraTimeType = extraTimeTypeInput.value;
+                extraTimeValue = parseFloat(extraTimeValueInput.value) || 0;
+
                 if (extraTimeType === 'percentage') {
                     extraTimeSec = (durationMin * 60) * (extraTimeValue / 100);
                 } else if (extraTimeType === 'absolute') {
@@ -2158,8 +2015,8 @@
                 extraTimeSec = 0;
             }
 
-            const data = { board, name, durationMin, startMin, customBoardName, customWarnings, extraTimeSec, readingDurationMin };
-            
+            const data = { board, name, durationMin, startMin, customBoardName, customWarnings, extraTimeSec, extraTimeType, extraTimeValue, readingDurationMin };
+
             if (editingTimerId) {
                 const idx = timers.findIndex(t => t.id === editingTimerId);
                 if (idx !== -1) {
@@ -2168,11 +2025,15 @@
                     t.name = data.name;
                     t.durationMin = data.durationMin;
                     t.startMin = data.startMin;
+                    t.customBoardName = data.customBoardName;
                     t.customWarnings = data.customWarnings;
                     t.extraTimeSec = data.extraTimeSec;
+                    t.extraTimeType = data.extraTimeType;
+                    t.extraTimeValue = data.extraTimeValue;
                     t.readingDurationMin = data.readingDurationMin;
                     t.times = computeTimes(t.board, t.startMin, t.durationMin, t.customWarnings, t.extraTimeSec, t.readingDurationMin);
-                    
+
+                    bannerObserver.unobserve(t.el);
                     t.el.remove();
                     const newCard = buildCard(t);
                     const refNode = cardsGrid.children[idx] || null;
@@ -2192,46 +2053,26 @@
 		// Auto-fill durations and extra time based on exam selection
         examBoardSelect.addEventListener('change', (e) => {
             const board = e.target.value;
-            let totalMins = 0;
+            const preset = getPreset(board);
 
-            // 0. Handle Reading Time Defaults Checkbox
-            if (readingDurationInput) {
-                if (board.toUpperCase().includes('IB')) {
-                    enableReadingTimeCb.checked = true;
-                    readingDurationInput.disabled = false;
-                    readingDurationInput.value = '5';
-                } else {
-                    enableReadingTimeCb.checked = false;
-                    readingDurationInput.disabled = true;
-                    readingDurationInput.value = '0';
-                }
-            }
+            // Reading time
+            enableReadingTimeCb.checked = preset.readingMin > 0;
+            readingDurationInput.disabled = !(preset.readingMin > 0);
+            readingDurationInput.value = String(preset.readingMin || 0);
 
-            // 1. Handle Extra Time Defaults Checkbox
-            if (board.startsWith('maths-')) {
-                enableExtraTimeCb.checked = false;
-                if (extraTimeTypeInput) { extraTimeTypeInput.value = 'percentage'; extraTimeTypeInput.disabled = true; }
-                if (extraTimeValueInput) { extraTimeValueInput.value = '25'; extraTimeValueInput.disabled = true; }
-            } else {
-                enableExtraTimeCb.checked = true;
-                if (extraTimeTypeInput) { extraTimeTypeInput.value = 'percentage'; extraTimeTypeInput.disabled = false; }
-                if (extraTimeValueInput) { extraTimeValueInput.value = '25'; extraTimeValueInput.disabled = false; }
-            }
-            
-            // Generate warnings dynamically
+            // Extra time (when off, the field still shows the Custom % ready to switch on)
+            const extraOn = preset.extraPct > 0;
+            enableExtraTimeCb.checked = extraOn;
+            extraTimeTypeInput.value = 'percentage';
+            extraTimeValueInput.value = String(preset.extraPct || examPresets.Custom.extraPct);
+            extraTimeTypeInput.disabled = !extraOn;
+            extraTimeValueInput.disabled = !extraOn;
+
+            // Warning checkboxes (when editing, keep that timer's own warnings ticked)
             renderWarningCheckboxes(board, editingTimerId ? timers.find(t => t.id === editingTimerId).customWarnings : null);
 
-            // 2. Handle Duration Defaults
-            if (examPresets[board] && examPresets[board].durationMin) {
-                // Maths Olympiads (pulls from your preset database)
-                totalMins = examPresets[board].durationMin;
-            } else if (board === 'Custom') {
-                // Custom default
-                totalMins = 45;
-            } else if (board === 'IB' || board === 'IGCSE') {
-                // IB and IGCSE default
-                totalMins = 90;
-            }
+            // Duration
+            const totalMins = preset.durationMin;
 
             // Apply the calculated duration to the input boxes
             if (totalMins > 0) {
@@ -2242,6 +2083,7 @@
 
         // Load button
         document.getElementById('btn-load').addEventListener('click', () => {
+            if (timers.length > 0 && !confirm('Loading a file will replace all current timers. Continue?')) return;
             document.getElementById('file-input').click();
         });
 
@@ -2254,19 +2096,25 @@
                     let data = JSON.parse(evt.target.result);
                     if (!Array.isArray(data)) data = [data];
 
-                    timers.forEach(t => t.el.remove());
+                    const valid = data.filter(d => d && typeof d.board === 'string' && d.name &&
+                        typeof d.durationMin === 'number' && d.durationMin > 0 && typeof d.startMin === 'number');
+
+                    if (valid.length === 0) {
+                        // Leave any current timers untouched
+                        alert('No valid timers found in file.');
+                        return;
+                    }
+
+                    timers.forEach(t => { bannerObserver.unobserve(t.el); t.el.remove(); });
                     timers.length = 0;
 
-                    data.forEach(d => {
-                        if (d.board && d.name && d.durationMin && d.startMin !== undefined) {
-                            addTimer(d);
+                    valid.forEach(d => {
+                        // Older save files didn't store reading time: fall back to the board's preset
+                        if (typeof d.readingDurationMin !== 'number') {
+                            d.readingDurationMin = getPreset(d.board).readingMin;
                         }
+                        addTimer(d);
                     });
-
-                    if (timers.length === 0) {
-                        alert('No valid timers found in file.');
-                        showSetup();
-                    }
                 } catch {
                     alert('Could not read timer file.');
                 }
@@ -2285,7 +2133,10 @@
                 startMin: t.startMin,
                 customBoardName: t.customBoardName,
                 customWarnings: t.customWarnings,
-                extraTimeSec: t.extraTimeSec
+                extraTimeSec: t.extraTimeSec,
+                extraTimeType: t.extraTimeType,
+                extraTimeValue: t.extraTimeValue,
+                readingDurationMin: t.readingDurationMin
             }));
             const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -2298,6 +2149,11 @@
 
         // --- Drag and drop reordering ---
         let draggedCard = null;
+
+        // Re-enable dragging on release anywhere (a resize can end outside the card)
+        document.addEventListener('mouseup', () => {
+            cardsGrid.querySelectorAll('.exam-card').forEach(c => { c.draggable = true; });
+        });
 
         cardsGrid.addEventListener('dragstart', (e) => {
             const card = e.target.closest('.exam-card');
