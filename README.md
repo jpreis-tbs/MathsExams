@@ -12,7 +12,7 @@ A minimalistic web-based timer for IB, IGCSE, Maths Olympiads, and custom exams.
   |-------|--------|----------|--------------|------------|
   | **IB** | Higher P1, P2 (2h), Higher P3 (1h15m), Standard P1, P2 (1h30m), Custom IB (1h30m) | 30 & 5 min | 5 min | 25% |
   | **IGCSE** | Extended P2, P4, P6 (1h30m), Additional P1, P2 (2h), Custom IGCSE (1h30m) | 5 min | Off | 25% |
-  | **Maths Olympiads** | Kangaroo (1h40m), OBMEP (2h30m), Jacob Palis Jr (2h30m) | 20 & 5 min (Jacob Palis: 15 & 5 min) | Off | Off |
+  | **Maths Olympiads** | Kangaroo (1h40m), OBMEP (2h30m), Jacob Palis Jr (2h30m), MAA AMC 08 (40m), MAA AMC 10, AMC 12 (1h15m) | 20 & 5 min (Jacob Palis: 15 & 5 min; AMC 08: 10 min) | Off | Off |
   | **Custom** | Your own board name (45m by default) | 5 min | Off | 25% |
 
   Every default can be changed for each timer before adding it.
